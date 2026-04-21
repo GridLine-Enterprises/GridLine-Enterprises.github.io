@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="gridGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00E5C3;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#0077FF;stop-opacity:0.9" />
+    </linearGradient>
+  </defs>
+
+  <!-- Icon background tile -->
+  <rect width="256" height="256" rx="38" fill="#111827"/>
+
+  <!-- Grid lines inside icon -->
+  <!-- Horizontal lines -->
+  <line x1="0" y1="85" x2="256" y2="85" stroke="#1E2D45" stroke-width="2"/>
+  <line x1="0" y1="128" x2="256" y2="128" stroke="#1E2D45" stroke-width="2"/>
+  <line x1="0" y1="171" x2="256" y2="171" stroke="#1E2D45" stroke-width="2"/>
+  <!-- Vertical lines -->
+  <line x1="85" y1="0" x2="85" y2="256" stroke="#1E2D45" stroke-width="2"/>
+  <line x1="128" y1="0" x2="128" y2="256" stroke="#1E2D45" stroke-width="2"/>
+  <line x1="171" y1="0" x2="171" y2="256" stroke="#1E2D45" stroke-width="2"/>
+
+  <!-- Gridline G shape — built from bold grid-aligned rectangles -->
+  <!-- Top bar -->
+  <rect x="47" y="47" width="119" height="21" rx="4" fill="url(#gridGrad)"/>
+  <!-- Left bar -->
+  <rect x="47" y="47" width="21" height="119" rx="4" fill="url(#gridGrad)"/>
+  <!-- Bottom bar -->
+  <rect x="47" y="145" width="119" height="21" rx="4" fill="url(#gridGrad)"/>
+  <!-- Right middle notch (G cutout) -->
+  <rect x="123" y="102" width="43" height="21" rx="4" fill="url(#gridGrad)"/>
+  <!-- Right bar (bottom half only) -->
+  <rect x="145" y="102" width="21" height="64" rx="4" fill="url(#gridGrad)"/>
+
+  <!-- Dot accent — top right corner of icon -->
+  <circle cx="234" cy="21" r="11" fill="#00E5C3" opacity="0.85"/>
+</svg>
