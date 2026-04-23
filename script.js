@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
     countItems.forEach((item) => countObserver.observe(item));
 
     if (form) {
-        form.addEventListener("submit", async (event) => {
+        form.addEventListener("submit", (event) => {
             event.preventDefault();
 
             const formData = new FormData(form);
@@ -99,44 +99,46 @@ document.addEventListener("DOMContentLoaded", () => {
                 formStatus.classList.remove("is-success", "is-error");
             }
 
-            try {
-                const response = await fetch(form.action, {
-                    method: "POST",
-                    body: formData,
-                    headers: {
-                        Accept: "application/json"
+            fetch(form.action, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    Accept: "application/json"
+                }
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error("Request failed");
+                    }
+
+                    return response.json();
+                })
+                .then((result) => {
+                    if (!result.success) {
+                        throw new Error(result.message || "Submission failed");
+                    }
+
+                    form.reset();
+
+                    if (formStatus) {
+                        formStatus.textContent = "Message sent. Check abdelkareemm321@gmail.com for the FormSubmit activation email if this is the first submission.";
+                        formStatus.classList.remove("is-error");
+                        formStatus.classList.add("is-success");
+                    }
+                })
+                .catch(() => {
+                    if (formStatus) {
+                        formStatus.textContent = "Something went wrong while sending. Please try again in a moment.";
+                        formStatus.classList.remove("is-success");
+                        formStatus.classList.add("is-error");
+                    }
+                })
+                .finally(() => {
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.textContent = "Send Project Details";
                     }
                 });
-
-                if (!response.ok) {
-                    throw new Error("Request failed");
-                }
-
-                const result = await response.json();
-
-                if (!result.success) {
-                    throw new Error(result.message || "Submission failed");
-                }
-
-                form.reset();
-
-                if (formStatus) {
-                    formStatus.textContent = "Message sent. Check abdelkareemm321@gmail.com for the FormSubmit activation email if this is the first submission.";
-                    formStatus.classList.remove("is-error");
-                    formStatus.classList.add("is-success");
-                }
-            } catch (error) {
-                if (formStatus) {
-                    formStatus.textContent = "Something went wrong while sending. Please try again in a moment.";
-                    formStatus.classList.remove("is-success");
-                    formStatus.classList.add("is-error");
-                }
-            } finally {
-                if (submitButton) {
-                    submitButton.disabled = false;
-                    submitButton.textContent = "Send Project Details";
-                }
-            }
         });
     }
 });
