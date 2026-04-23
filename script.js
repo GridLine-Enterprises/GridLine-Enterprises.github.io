@@ -1,87 +1,142 @@
-// script.js - JavaScript for Gridline Digital website
+document.addEventListener("DOMContentLoaded", () => {
+    const menuButton = document.querySelector(".menu-toggle");
+    const siteNav = document.querySelector(".site-nav");
+    const navLinks = document.querySelectorAll(".site-nav a");
+    const revealItems = document.querySelectorAll("[data-reveal]");
+    const countItems = document.querySelectorAll("[data-count]");
+    const form = document.querySelector(".contact-form");
+    const formStatus = document.querySelector("[data-form-status]");
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Form handling
-    const contactForm = document.querySelector('form');
-    if (contactForm) {
-        contactForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+    if (menuButton && siteNav) {
+        menuButton.addEventListener("click", () => {
+            const isOpen = siteNav.classList.toggle("is-open");
+            menuButton.classList.toggle("is-open", isOpen);
+            menuButton.setAttribute("aria-expanded", String(isOpen));
+        });
 
-            const formData = new FormData(this);
-            const data = Object.fromEntries(formData);
-
-            // Simple form validation
-            if (!data.name || !data.email || !data.message) {
-                alert('Please fill in all required fields.');
-                return;
-            }
-
-            // Here you would typically send the data to a server
-            // For now, we'll just show a success message
-            alert('Thank you for your message! We\'ll get back to you within 24 hours.');
-
-            // Reset the form
-            this.reset();
+        navLinks.forEach((link) => {
+            link.addEventListener("click", () => {
+                siteNav.classList.remove("is-open");
+                menuButton.classList.remove("is-open");
+                menuButton.setAttribute("aria-expanded", "false");
+            });
         });
     }
 
-    // Smooth scrolling for anchor links
-    const anchorLinks = document.querySelectorAll('a[href^="#"]');
-    anchorLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-
-            const targetId = this.getAttribute('href').substring(1);
-            const targetElement = document.getElementById(targetId);
-
-            if (targetElement) {
-                targetElement.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) {
+                return;
             }
+
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
         });
+    }, {
+        threshold: 0.18
     });
 
-    // Make "Learn More" buttons functional
-    const learnMoreButtons = document.querySelectorAll('button');
-    learnMoreButtons.forEach(button => {
-        if (button.textContent.trim() === 'Learn More') {
-            button.addEventListener('click', function() {
-                const contactSection = document.getElementById('contact');
-                if (contactSection) {
-                    contactSection.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
+    revealItems.forEach((item) => revealObserver.observe(item));
+
+    const countObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) {
+                return;
+            }
+
+            const element = entry.target;
+            const target = Number(element.dataset.count || 0);
+            const duration = 1200;
+            const startTime = performance.now();
+
+            const updateCount = (now) => {
+                const progress = Math.min((now - startTime) / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                element.textContent = Math.round(target * eased);
+
+                if (progress < 1) {
+                    requestAnimationFrame(updateCount);
+                } else {
+                    element.textContent = String(target);
                 }
-            });
-        }
+            };
+
+            requestAnimationFrame(updateCount);
+            observer.unobserve(element);
+        });
+    }, {
+        threshold: 0.55
     });
 
-    // Make "View All Services" button functional
-    const viewAllServicesButton = document.querySelector('button');
-    if (viewAllServicesButton && viewAllServicesButton.textContent.trim() === 'View All Services') {
-        viewAllServicesButton.addEventListener('click', function() {
-            const servicesSection = document.getElementById('services');
-            if (servicesSection) {
-                servicesSection.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
+    countItems.forEach((item) => countObserver.observe(item));
+
+    if (form) {
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+            const name = String(formData.get("name") || "").trim();
+            const email = String(formData.get("email") || "").trim();
+            const message = String(formData.get("message") || "").trim();
+            const submitButton = form.querySelector('button[type="submit"]');
+
+            if (!name || !email || !message) {
+                if (formStatus) {
+                    formStatus.textContent = "Please fill in your name, email, and project details.";
+                    formStatus.classList.remove("is-success");
+                    formStatus.classList.add("is-error");
+                }
+                return;
+            }
+
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.textContent = "Sending...";
+            }
+
+            if (formStatus) {
+                formStatus.textContent = "Sending your project details...";
+                formStatus.classList.remove("is-success", "is-error");
+            }
+
+            try {
+                const response = await fetch(form.action, {
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        Accept: "application/json"
+                    }
                 });
+
+                if (!response.ok) {
+                    throw new Error("Request failed");
+                }
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.message || "Submission failed");
+                }
+
+                form.reset();
+
+                if (formStatus) {
+                    formStatus.textContent = "Message sent. Check abdelkareemm321@gmail.com for the FormSubmit activation email if this is the first submission.";
+                    formStatus.classList.remove("is-error");
+                    formStatus.classList.add("is-success");
+                }
+            } catch (error) {
+                if (formStatus) {
+                    formStatus.textContent = "Something went wrong while sending. Please try again in a moment.";
+                    formStatus.classList.remove("is-success");
+                    formStatus.classList.add("is-error");
+                }
+            } finally {
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = "Send Project Details";
+                }
             }
         });
-    });
-
-    // Mobile menu toggle (if needed in the future)
-    // const mobileMenuButton = document.querySelector('.mobile-menu-button');
-    // const mobileMenu = document.querySelector('.mobile-menu');
-    // if (mobileMenuButton && mobileMenu) {
-    //     mobileMenuButton.addEventListener('click', function() {
-    //         mobileMenu.classList.toggle('hidden');
-    //     });
-    // }
-
-    // Add any additional interactivity here
-    console.log('Gridline Digital website loaded successfully!');
+    }
 });
