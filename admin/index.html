@@ -475,6 +475,57 @@
       color:rgba(152,164,184,0.75);
       line-height:1.5;
     }
+    .endpoint-card{
+      margin-top:12px;
+      border:1px solid rgba(120,215,255,0.2);
+      border-radius:var(--radius-sm);
+      background:rgba(120,215,255,0.05);
+      padding:12px;
+    }
+    .endpoint-label{
+      font-size:10px;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      color:var(--accent-2);
+      margin-bottom:8px;
+    }
+    .endpoint-row{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .endpoint-input{
+      flex:1;
+      min-width:0;
+      background:rgba(255,255,255,0.04);
+      border:1px solid var(--line-strong);
+      border-radius:var(--radius-sm);
+      color:var(--text);
+      font-size:11px;
+      font-family:"JetBrains Mono",monospace;
+      padding:9px 10px;
+      outline:none;
+    }
+    .endpoint-btn{
+      flex:0 0 auto;
+      padding:8px 14px;
+      font-size:11px;
+      font-weight:700;
+      border:1px solid rgba(198,255,77,0.35);
+      border-radius:999px;
+      background:rgba(198,255,77,0.1);
+      color:var(--accent);
+      cursor:pointer;
+      font-family:"Manrope",sans-serif;
+      transition:all 120ms;
+    }
+    .endpoint-btn:hover{background:rgba(198,255,77,0.18);}
+    .endpoint-help{
+      margin-top:8px;
+      font-size:11px;
+      color:rgba(152,164,184,0.82);
+      line-height:1.5;
+    }
     .source-pills{
       display:flex;
       flex-wrap:wrap;
@@ -664,10 +715,10 @@
       <span>Rep:</span>
       <select id="repFilter" onchange="onRepChange()">
         <option value="">All reps</option>
-        <option>Alex</option>
-        <option>Jordan</option>
-        <option>Sam</option>
-        <option>Taylor</option>
+        <option>Abdel</option>
+        <option>Nitai</option>
+        <option>Lucas</option>
+        <option>Edem</option>
       </select>
     </div>
     <div class="topbar-actions">
@@ -731,6 +782,14 @@
             <strong id="extensionSyncStatus">Waiting for extension...</strong>
           </div>
         </div>
+        <div class="endpoint-card">
+          <div class="endpoint-label">Push endpoint</div>
+          <div class="endpoint-row">
+            <input class="endpoint-input" id="pushEndpointField" type="text" value="Preparing endpoint..." readonly>
+            <button class="endpoint-btn" type="button" onclick="copyPushEndpoint()">Copy</button>
+          </div>
+          <div class="endpoint-help" id="pushEndpointHelp">Enable the dashboard once on your live site, then paste this URL into the extension's Push endpoint field.</div>
+        </div>
         <p class="sync-note">Manual JSON import has been removed here so the admin stays tied to the shared sheet plus extension updates only.</p>
       </div>
 
@@ -772,6 +831,7 @@ const REPS = ['Abdel', 'Nitai', 'Lucas', 'Edem'];
 const STORE_KEY = 'gridline_leads_v2';
 const SHEET_DATA_URL = './sheet-data.json';
 const EXTENSION_STORE_KEY = 'gridline_extension_payload_v1';
+const PUSH_ENDPOINT_PATH = './extension-sync';
 
 let leads = [];
 let currentFilter = 'all';
@@ -779,6 +839,7 @@ let currentId = null;
 let sheetSnapshotMeta = null;
 let extensionSyncMeta = null;
 let toastTimer;
+let pushEndpointUrl = '';
 
 function normalizePhone(phone) {
   return String(phone || '').replace(/\D/g, '');
@@ -1005,6 +1066,13 @@ function updateExtensionSyncStatus(message, isError = false) {
   el.style.color = 'var(--text)';
 }
 
+function setPushEndpointUi(message, helpText = '') {
+  const field = document.getElementById('pushEndpointField');
+  const help = document.getElementById('pushEndpointHelp');
+  if (field) field.value = message;
+  if (help && helpText) help.textContent = helpText;
+}
+
 function mergeImportedLeads(payload, source = 'extension') {
   const incoming = Array.isArray(payload) ? payload : Array.isArray(payload?.leads) ? payload.leads : [];
   if (!incoming.length) return 0;
@@ -1078,6 +1146,70 @@ async function consumeExtensionPayload() {
   }
 }
 
+async function registerPushBridge() {
+  pushEndpointUrl = new URL(PUSH_ENDPOINT_PATH, window.location.href).href;
+  setPushEndpointUi(pushEndpointUrl, 'Paste this exact URL into the extension, click Save there, then use Push to Site.');
+
+  if (!('serviceWorker' in navigator) || !window.isSecureContext) {
+    updateExtensionSyncStatus('Push bridge needs HTTPS or localhost', true);
+    setPushEndpointUi(
+      pushEndpointUrl,
+      'This bridge only works on HTTPS or localhost because service workers are required.'
+    );
+    return;
+  }
+
+  try {
+    await navigator.serviceWorker.register('./bridge-sw.js');
+    await navigator.serviceWorker.ready;
+    updateExtensionSyncStatus('Push bridge ready');
+    await consumeBridgeQueue();
+  } catch (error) {
+    updateExtensionSyncStatus('Push bridge could not start', true);
+    setPushEndpointUi(pushEndpointUrl, 'Service worker registration failed, so the endpoint is not active yet.');
+  }
+}
+
+async function consumeBridgeQueue() {
+  if (!pushEndpointUrl) return;
+
+  try {
+    const response = await fetch(pushEndpointUrl, { cache: 'no-store' });
+    if (!response.ok) return;
+
+    const payload = await response.json();
+    const queue = Array.isArray(payload?.queue) ? payload.queue : [];
+    if (!queue.length) return;
+
+    let totalAdded = 0;
+    queue.forEach((entry) => {
+      totalAdded += mergeImportedLeads(entry, entry?.source || 'extension bridge');
+    });
+
+    await fetch(pushEndpointUrl, { method: 'DELETE' });
+    toast(`${totalAdded} new leads synced`, 'ok');
+  } catch (error) {
+    updateExtensionSyncStatus('Queued bridge sync failed', true);
+  }
+}
+
+async function copyPushEndpoint() {
+  const field = document.getElementById('pushEndpointField');
+  if (!field) return;
+  const value = field.value;
+  if (!value || value === 'Preparing endpoint...') return;
+
+  try {
+    await navigator.clipboard.writeText(value);
+  } catch (error) {
+    field.removeAttribute('readonly');
+    field.select();
+    document.execCommand('copy');
+    field.setAttribute('readonly', 'readonly');
+  }
+  toast('Push endpoint copied', 'ok');
+}
+
 window.addEventListener('message', (event) => {
   const data = event.data;
   if (!data) return;
@@ -1095,6 +1227,15 @@ window.addEventListener('gridline:leads-import', (event) => {
   const payload = event.detail;
   if (!payload) return;
   const added = mergeImportedLeads(payload, payload.source || 'extension event');
+  toast(`${added} new leads synced`, 'ok');
+});
+
+navigator.serviceWorker?.addEventListener('message', (event) => {
+  const payload = event.data;
+  if (!payload) return;
+  const looksLikeLeadSync = payload.type === 'GRIDLINE_EXTENSION_LEADS' || Array.isArray(payload.leads);
+  if (!looksLikeLeadSync) return;
+  const added = mergeImportedLeads(payload, payload.source || 'service worker');
   toast(`${added} new leads synced`, 'ok');
 });
 
@@ -1128,6 +1269,7 @@ async function tryUnlock() {
   document.getElementById('lockScreen').style.display = 'none';
   document.getElementById('adminApp').style.display = 'flex';
   await loadLeads();
+  await registerPushBridge();
   renderStats();
   renderList();
 }
