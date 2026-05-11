@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
       --bg: #07090d;
@@ -446,7 +447,7 @@
     .import-textarea:focus{border-color:rgba(198,255,77,0.4);}
     .sync-grid{
       display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
+      grid-template-columns:minmax(0,1fr);
       gap:10px;
       margin-top:12px;
     }
@@ -475,56 +476,136 @@
       color:rgba(152,164,184,0.75);
       line-height:1.5;
     }
-    .endpoint-card{
+    .auth-strip{
       margin-top:12px;
-      border:1px solid rgba(120,215,255,0.2);
+      border:1px solid rgba(198,255,77,0.18);
       border-radius:var(--radius-sm);
-      background:rgba(120,215,255,0.05);
+      background:rgba(198,255,77,0.04);
       padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
     }
-    .endpoint-label{
+    .auth-strip-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .auth-strip-title{
       font-size:10px;
       letter-spacing:0.08em;
       text-transform:uppercase;
-      color:var(--accent-2);
-      margin-bottom:8px;
+      color:var(--muted);
     }
-    .endpoint-row{
+    .auth-actions{
       display:flex;
       gap:8px;
-      align-items:center;
+      flex-wrap:wrap;
     }
-    .endpoint-input{
-      flex:1;
-      min-width:0;
-      background:rgba(255,255,255,0.04);
-      border:1px solid var(--line-strong);
-      border-radius:var(--radius-sm);
-      color:var(--text);
-      font-size:11px;
-      font-family:"JetBrains Mono",monospace;
-      padding:9px 10px;
-      outline:none;
-    }
-    .endpoint-btn{
-      flex:0 0 auto;
-      padding:8px 14px;
+    .auth-btn{
       font-size:11px;
       font-weight:700;
-      border:1px solid rgba(198,255,77,0.35);
       border-radius:999px;
-      background:rgba(198,255,77,0.1);
-      color:var(--accent);
+      border:1px solid var(--line-strong);
+      padding:7px 12px;
       cursor:pointer;
-      font-family:"Manrope",sans-serif;
       transition:all 120ms;
+      font-family:"Manrope",sans-serif;
     }
-    .endpoint-btn:hover{background:rgba(198,255,77,0.18);}
-    .endpoint-help{
-      margin-top:8px;
-      font-size:11px;
-      color:rgba(152,164,184,0.82);
+    .auth-btn-primary{
+      color:#07090d;
+      border-color:rgba(198,255,77,0.45);
+      background:linear-gradient(135deg,var(--accent),#efffb6);
+    }
+    .auth-btn-primary:hover{opacity:0.92;}
+    .auth-btn-secondary{
+      color:var(--text);
+      background:rgba(255,255,255,0.04);
+    }
+    .auth-btn-secondary:hover{background:rgba(255,255,255,0.08);}
+    .auth-btn:disabled{
+      opacity:0.5;
+      cursor:not-allowed;
+    }
+    .auth-status{
+      font-size:12px;
       line-height:1.5;
+      color:var(--text);
+    }
+    .extension-card{
+      margin:16px;
+      margin-top:0;
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:var(--radius-md);
+      padding:16px;
+    }
+    .extension-card h3{
+      font-size:13px;
+      font-weight:700;
+      margin-bottom:8px;
+      color:var(--text);
+    }
+    .extension-card p{
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:10px;
+      line-height:1.5;
+    }
+    .download-row{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:12px;
+    }
+    .download-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:9px 14px;
+      border-radius:999px;
+      border:1px solid rgba(198,255,77,0.35);
+      background:linear-gradient(135deg,var(--accent),#efffb6);
+      color:#07090d;
+      font-size:11px;
+      font-weight:700;
+      text-decoration:none;
+      letter-spacing:0.02em;
+    }
+    .download-btn:hover{opacity:0.92;}
+    .download-note{
+      font-size:11px;
+      color:rgba(152,164,184,0.78);
+      line-height:1.5;
+    }
+    .setup-list{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin-top:10px;
+    }
+    .setup-item{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      font-size:12px;
+      line-height:1.5;
+      color:var(--text);
+    }
+    .setup-num{
+      width:20px;
+      height:20px;
+      flex:0 0 20px;
+      border-radius:999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:10px;
+      font-weight:700;
+      color:#07090d;
+      background:linear-gradient(135deg,var(--accent),#efffb6);
     }
     .source-pills{
       display:flex;
@@ -771,26 +852,40 @@
 
       <div class="import-card">
         <h3>Lead sync</h3>
-        <p>This dashboard auto-loads every business from every tab in the Google Sheet and listens for fresh imports from the extension.</p>
+        <p>This dashboard reads every lead directly from the Google Sheet. The extension writes to Sheets as usual, and this page reloads from that live workbook.</p>
         <div class="sync-grid">
           <div class="sync-box">
             <div class="sync-box-label">Sheet snapshot</div>
-            <strong id="sheetSnapshotStatus">Waiting for data...</strong>
-          </div>
-          <div class="sync-box">
-            <div class="sync-box-label">Extension sync</div>
-            <strong id="extensionSyncStatus">Waiting for extension...</strong>
+            <strong id="sheetSnapshotStatus">Connect Google to load the live sheet.</strong>
           </div>
         </div>
-        <div class="endpoint-card">
-          <div class="endpoint-label">Push endpoint</div>
-          <div class="endpoint-row">
-            <input class="endpoint-input" id="pushEndpointField" type="text" value="Preparing endpoint..." readonly>
-            <button class="endpoint-btn" type="button" onclick="copyPushEndpoint()">Copy</button>
+        <div class="auth-strip">
+          <div class="auth-strip-head">
+            <div class="auth-strip-title">Google Sheets access</div>
+            <div class="auth-actions">
+              <button class="auth-btn auth-btn-primary" id="googleAuthBtn" type="button" onclick="connectGoogleSheet()" disabled>Connect Google</button>
+              <button class="auth-btn auth-btn-secondary" id="googleDisconnectBtn" type="button" onclick="disconnectGoogleSheet()" disabled>Disconnect</button>
+            </div>
           </div>
-          <div class="endpoint-help" id="pushEndpointHelp">Enable the dashboard once on your live site, then paste this URL into the extension's Push endpoint field.</div>
+          <div class="auth-status" id="googleAuthStatus">Preparing Google authorization...</div>
         </div>
-        <p class="sync-note">Manual JSON import has been removed here so the admin stays tied to the shared sheet plus extension updates only.</p>
+        <p class="sync-note">There is no push endpoint or local JSON snapshot anymore. The placeholder parser below reads the live workbook directly.</p>
+      </div>
+
+      <div class="extension-card">
+        <h3>Chrome extension</h3>
+        <p>Download the current scraper build here, then load it into Chrome as an unpacked extension.</p>
+        <div class="download-row">
+          <a class="download-btn" href="./gmaps-gridline.zip" download>Download extension zip</a>
+        </div>
+        <div class="download-note">This package writes straight to Google Sheets. In this build, setup is done with the spreadsheet ID inside the extension settings. No push-endpoint field is required.</div>
+        <div class="setup-list">
+          <div class="setup-item"><div class="setup-num">1</div><div>Download <code>gmaps-gridline.zip</code> and extract it so you have the <code>gmaps-gridline</code> folder with <code>manifest.json</code> inside.</div></div>
+          <div class="setup-item"><div class="setup-num">2</div><div>Open <code>chrome://extensions</code>, turn on <b>Developer mode</b>, then click <b>Load unpacked</b> and choose that extracted folder.</div></div>
+          <div class="setup-item"><div class="setup-num">3</div><div>Open the extension, click the gear icon, and paste this spreadsheet ID: <code>1MJ5sJqP-t0bWz93O_XYlCjoA7nU__mJ1T_PZT1Pr_K4</code>.</div></div>
+          <div class="setup-item"><div class="setup-num">4</div><div>Click <b>Verify</b>, then <b>Save Settings</b>. When prompted, sign in with the Google account that can edit the sheet.</div></div>
+          <div class="setup-item"><div class="setup-num">5</div><div>Go to Google Maps, scrape leads, then use <b>Push to Google Sheets</b>. The extension will create a dated tab and also write the same rows into <code>Master</code>.</div></div>
+        </div>
       </div>
 
       <div class="export-bar">
@@ -829,17 +924,43 @@
 const PASSKEY = 'momoneymopower';
 const REPS = ['Abdel', 'Nitai', 'Lucas', 'Edem'];
 const STORE_KEY = 'gridline_leads_v2';
-const SHEET_DATA_URL = './sheet-data.json';
-const EXTENSION_STORE_KEY = 'gridline_extension_payload_v1';
-const PUSH_ENDPOINT_PATH = './extension-sync';
+const GOOGLE_OAUTH_CONFIG = {
+  clientId: 'YOUR_GOOGLE_WEB_CLIENT_ID.apps.googleusercontent.com',
+  scopes: 'https://www.googleapis.com/auth/spreadsheets.readonly'
+};
+const GOOGLE_SHEET_CONFIG = {
+  spreadsheetId: '1MJ5sJqP-t0bWz93O_XYlCjoA7nU__mJ1T_PZT1Pr_K4',
+  schedulingSheet: 'Scheduling',
+  extraStatusSheets: [],
+  // Placeholder:
+  // Add extra status tabs here when you want to merge notes/status columns
+  // from other tabs into the same lead record shape.
+};
+const BASE_LEAD_COLUMNS = [
+  'placeUrl',
+  'title',
+  'rating',
+  'reviewCount',
+  'category',
+  'address',
+  'plusCode',
+  'website',
+  'phoneNumber',
+  'currentStatus',
+  'scrapedAt',
+  'importedAt'
+];
 
 let leads = [];
 let currentFilter = 'all';
 let currentId = null;
 let sheetSnapshotMeta = null;
-let extensionSyncMeta = null;
 let toastTimer;
-let pushEndpointUrl = '';
+let googleTokenClient = null;
+let googleAccessToken = '';
+let googleAuthReady = false;
+let googleTokenExpiresAt = 0;
+let googleAuthState = 'idle';
 
 function normalizePhone(phone) {
   return String(phone || '').replace(/\D/g, '');
@@ -874,6 +995,261 @@ function extractZip(address) {
 
 function getLeadKey(lead) {
   return (lead.placeUrl || '').trim() || normalizePhone(lead.phone) || `${(lead.name || '').trim().toLowerCase()}|${(lead.address || '').trim().toLowerCase()}`;
+}
+
+function hasGoogleClientIdConfigured() {
+  return Boolean(
+    GOOGLE_OAUTH_CONFIG.clientId
+    && !GOOGLE_OAUTH_CONFIG.clientId.startsWith('YOUR_GOOGLE_WEB_CLIENT_ID')
+  );
+}
+
+function updateGoogleAuthUi(message, isError = false) {
+  const status = document.getElementById('googleAuthStatus');
+  const connectBtn = document.getElementById('googleAuthBtn');
+  const disconnectBtn = document.getElementById('googleDisconnectBtn');
+  if (status) status.textContent = message;
+  if (status) status.style.color = isError ? 'var(--danger)' : 'var(--text)';
+  if (connectBtn) {
+    connectBtn.disabled = !googleAuthReady || !hasGoogleClientIdConfigured() || googleAuthState === 'pending';
+    connectBtn.textContent = googleAccessToken ? 'Refresh sheet' : 'Connect Google';
+  }
+  if (disconnectBtn) disconnectBtn.disabled = !googleAccessToken;
+}
+
+function initializeGoogleAuth() {
+  if (!hasGoogleClientIdConfigured()) {
+    updateGoogleAuthUi('Add a web OAuth client ID in GOOGLE_OAUTH_CONFIG to enable live Sheets access.', true);
+    updateSheetSnapshotStatus('Add a Google web client ID to load the live sheet.', true);
+    return;
+  }
+
+  if (!window.google?.accounts?.oauth2) {
+    updateGoogleAuthUi('Google authorization script not ready yet.', true);
+    return;
+  }
+
+  googleTokenClient = window.google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_OAUTH_CONFIG.clientId,
+    scope: GOOGLE_OAUTH_CONFIG.scopes,
+    callback: () => {}
+  });
+  googleAuthReady = true;
+  updateGoogleAuthUi('Connect Google to read the spreadsheet with your account.');
+}
+
+function waitForGoogleAuth() {
+  if (window.google?.accounts?.oauth2) {
+    initializeGoogleAuth();
+    return;
+  }
+
+  let attempts = 0;
+  const timer = window.setInterval(() => {
+    attempts += 1;
+    if (window.google?.accounts?.oauth2) {
+      window.clearInterval(timer);
+      initializeGoogleAuth();
+      return;
+    }
+    if (attempts >= 50) {
+      window.clearInterval(timer);
+      updateGoogleAuthUi('Google authorization script failed to load.', true);
+    }
+  }, 200);
+}
+
+async function requestGoogleAccessToken(prompt = 'consent') {
+  if (!googleTokenClient) throw new Error('Google authorization is not ready.');
+  googleAuthState = 'pending';
+  updateGoogleAuthUi('Waiting for Google authorization...');
+
+  return new Promise((resolve, reject) => {
+    googleTokenClient.callback = (response) => {
+      googleAuthState = 'idle';
+      if (response.error) {
+        updateGoogleAuthUi(response.error, true);
+        reject(new Error(response.error));
+        return;
+      }
+
+      googleAccessToken = response.access_token || '';
+      googleTokenExpiresAt = Date.now() + ((response.expires_in || 0) * 1000);
+      updateGoogleAuthUi('Google connected. Live sheet access is ready.');
+      resolve(googleAccessToken);
+    };
+
+    googleTokenClient.requestAccessToken({ prompt });
+  });
+}
+
+async function ensureGoogleAccessToken({ interactive = false } = {}) {
+  const stillValid = googleAccessToken && Date.now() < (googleTokenExpiresAt - 60_000);
+  if (stillValid) return googleAccessToken;
+  if (!interactive) throw new Error('Google authorization required');
+  return requestGoogleAccessToken(googleAccessToken ? '' : 'consent');
+}
+
+async function googleSheetsApi(path, token) {
+  const response = await fetch(`https://sheets.googleapis.com/v4/${path}`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    if (response.status === 401) {
+      googleAccessToken = '';
+      googleTokenExpiresAt = 0;
+      updateGoogleAuthUi('Google session expired. Connect again to refresh the sheet.', true);
+    }
+    throw new Error(error?.error?.message || `Google Sheets API error (${response.status})`);
+  }
+
+  return response.json();
+}
+
+async function fetchSpreadsheetSheetTitles(token) {
+  const data = await googleSheetsApi(
+    `spreadsheets/${GOOGLE_SHEET_CONFIG.spreadsheetId}?fields=sheets.properties(title)`,
+    token
+  );
+  return (data.sheets || []).map((sheet) => cleanText(sheet.properties?.title)).filter(Boolean);
+}
+
+async function fetchSheetRows(sheetName, token) {
+  const data = await googleSheetsApi(
+    `spreadsheets/${GOOGLE_SHEET_CONFIG.spreadsheetId}/values/${encodeURIComponent(`${sheetName}!A:Z`)}`,
+    token
+  );
+  return (data.values || []).map((row) => row.map(cleanText)).filter((entry) => entry.some(Boolean));
+}
+
+function isLeadSheet(headers = []) {
+  if (!headers.length) return false;
+  return BASE_LEAD_COLUMNS.every((column, index) => cleanText(headers[index]).toLowerCase() === column.toLowerCase());
+}
+
+function mapLeadRow(headers, values, sheetName) {
+  const mapped = {};
+
+  BASE_LEAD_COLUMNS.forEach((key, index) => {
+    mapped[key] = values[index] || '';
+  });
+
+  const normalizedHeaders = headers.map((header) => cleanText(header).toLowerCase());
+  const extraValues = values
+    .slice(normalizedHeaders.length || BASE_LEAD_COLUMNS.length)
+    .map(cleanText)
+    .filter(Boolean);
+  const rawCallStatuses = extraValues.map((value) => ({ sheet: sheetName, value }));
+
+  return {
+    ...mapped,
+    sourceSheets: [sheetName],
+    rawCallStatuses
+  };
+}
+
+function parseLeadSheet(sheetName, rows) {
+  if (!rows.length) return [];
+  const [headers, ...dataRows] = rows;
+
+  return dataRows
+    .filter((row) => row.some((cell) => cleanText(cell)))
+    .map((row) => mapLeadRow(headers, row, sheetName));
+}
+
+function parseSchedulingSheet(rows) {
+  if (!rows.length) return new Map();
+  const [headers, ...dataRows] = rows;
+  const indexByHeader = new Map(headers.map((header, index) => [cleanText(header).toLowerCase(), index]));
+  const meetings = new Map();
+
+  dataRows.forEach((row) => {
+    const contactName = cleanText(row[indexByHeader.get('name')] || '');
+    const company = cleanText(row[indexByHeader.get('company')] || '');
+    if (!contactName && !company) return;
+
+    const meeting = {
+      contactName,
+      owner: cleanText(row[indexByHeader.get('who dealed')] || ''),
+      email: cleanText(row[indexByHeader.get('email')] || ''),
+      company,
+      demoDate: cleanText(row[indexByHeader.get('demo date/time')] || ''),
+      meetingLink: cleanText(row[indexByHeader.get('meeting link')] || ''),
+      sheet: GOOGLE_SHEET_CONFIG.schedulingSheet
+    };
+
+    if (contactName) meetings.set(contactName.toLowerCase(), meeting);
+    if (company) meetings.set(company.toLowerCase(), meeting);
+  });
+
+  return meetings;
+}
+
+async function fetchGoogleSheetSnapshot() {
+  const token = await ensureGoogleAccessToken({ interactive: false });
+  const sheetTitles = await fetchSpreadsheetSheetTitles(token);
+  const visibleLeadSheets = sheetTitles.filter((title) => title && title !== GOOGLE_SHEET_CONFIG.schedulingSheet);
+  const uniqueLeadSheets = Array.from(new Set([
+    ...visibleLeadSheets,
+    ...GOOGLE_SHEET_CONFIG.extraStatusSheets
+  ]));
+  const leadSheetResults = await Promise.all(uniqueLeadSheets.map((sheetName) => fetchSheetRows(sheetName, token)));
+  const schedulingRows = sheetTitles.includes(GOOGLE_SHEET_CONFIG.schedulingSheet)
+    ? await fetchSheetRows(GOOGLE_SHEET_CONFIG.schedulingSheet, token)
+    : [];
+  const schedulingMap = parseSchedulingSheet(schedulingRows);
+  const byKey = new Map();
+
+  leadSheetResults.forEach((rows, index) => {
+    const sheetName = uniqueLeadSheets[index];
+    if (!rows.length) return;
+    const headers = rows[0] || [];
+    if (!isLeadSheet(headers)) return;
+    parseLeadSheet(sheetName, rows).forEach((rawLead) => {
+      const normalized = normalizeLead(rawLead);
+      const key = getLeadKey(normalized);
+      const existing = byKey.get(key);
+
+      if (!existing) {
+        byKey.set(key, normalized);
+        return;
+      }
+
+      existing.rawCallStatuses = [
+        ...(existing.rawCallStatuses || []),
+        ...(normalized.rawCallStatuses || [])
+      ];
+      existing.sourceSheets = Array.from(new Set([
+        ...(existing.sourceSheets || []),
+        ...(normalized.sourceSheets || [])
+      ]));
+      existing.currentStatus = existing.currentStatus || normalized.currentStatus;
+      existing.scrapedAt = existing.scrapedAt || normalized.scrapedAt;
+      existing.importedAt = existing.importedAt || normalized.importedAt;
+    });
+  });
+
+  const leadsFromSheet = Array.from(byKey.values()).map((lead, index) => {
+    const nameKey = (lead.name || '').trim().toLowerCase();
+    const meeting = schedulingMap.get(nameKey);
+
+    return normalizeLead({
+      ...lead,
+      id: index + 1,
+      scheduledMeeting: meeting || null
+    });
+  });
+
+  return {
+    generatedAt: new Date().toISOString(),
+    spreadsheetId: GOOGLE_SHEET_CONFIG.spreadsheetId,
+    sheetNames: uniqueLeadSheets,
+    leadCount: leadsFromSheet.length,
+    leads: leadsFromSheet
+  };
 }
 
 function interpretCallStatus(rawCallStatuses = [], scheduledMeeting = null) {
@@ -994,14 +1370,18 @@ async function loadLeads() {
 
   let baseLeads = [];
   try {
-    const response = await fetch(SHEET_DATA_URL, { cache: 'no-store' });
-    if (!response.ok) throw new Error('sheet snapshot unavailable');
-    const data = await response.json();
+    const data = await fetchGoogleSheetSnapshot();
     sheetSnapshotMeta = data;
     baseLeads = Array.isArray(data.leads) ? data.leads.map(normalizeLead) : [];
     updateSheetSnapshotStatus();
   } catch (e) {
-    updateSheetSnapshotStatus('Sheet snapshot unavailable', true);
+    if (e.message === 'Google authorization required') {
+      updateSheetSnapshotStatus('Connect Google to load the live sheet.', true);
+      updateGoogleAuthUi('Connect Google to read the spreadsheet with your account.');
+    } else {
+      updateSheetSnapshotStatus(e.message || 'Sheet snapshot unavailable', true);
+      updateGoogleAuthUi(e.message || 'Sheet snapshot unavailable', true);
+    }
   }
 
   const savedMap = new Map((storedLeads || []).map((lead) => [getLeadKey(lead), lead]));
@@ -1029,7 +1409,6 @@ async function loadLeads() {
 
   leads = merged;
   saveLeads();
-  await consumeExtensionPayload();
 }
 
 function saveLeads() {
@@ -1046,203 +1425,35 @@ function updateSheetSnapshotStatus(message, isError = false) {
   }
   const generatedAt = sheetSnapshotMeta?.generatedAt ? new Date(sheetSnapshotMeta.generatedAt) : null;
   el.textContent = generatedAt && !Number.isNaN(generatedAt.getTime())
-    ? `${sheetSnapshotMeta.leadCount || leads.length} leads - updated ${generatedAt.toLocaleString()}`
+    ? `${sheetSnapshotMeta.leadCount || leads.length} leads from ${sheetSnapshotMeta.sheetNames?.length || 0} tabs - updated ${generatedAt.toLocaleString()}`
     : `${sheetSnapshotMeta?.leadCount || leads.length} leads loaded`;
   el.style.color = 'var(--text)';
 }
 
-function updateExtensionSyncStatus(message, isError = false) {
-  const el = document.getElementById('extensionSyncStatus');
-  if (!el) return;
-  if (message) {
-    el.textContent = message;
-    el.style.color = isError ? 'var(--danger)' : 'var(--text)';
-    return;
-  }
-  const syncedAt = extensionSyncMeta?.syncedAt ? new Date(extensionSyncMeta.syncedAt) : null;
-  el.textContent = syncedAt && !Number.isNaN(syncedAt.getTime())
-    ? `${extensionSyncMeta.count || 0} leads synced - ${syncedAt.toLocaleString()}`
-    : 'Waiting for extension...';
-  el.style.color = 'var(--text)';
-}
-
-function setPushEndpointUi(message, helpText = '') {
-  const field = document.getElementById('pushEndpointField');
-  const help = document.getElementById('pushEndpointHelp');
-  if (field) field.value = message;
-  if (help && helpText) help.textContent = helpText;
-}
-
-function mergeImportedLeads(payload, source = 'extension') {
-  const incoming = Array.isArray(payload) ? payload : Array.isArray(payload?.leads) ? payload.leads : [];
-  if (!incoming.length) return 0;
-
-  const byKey = new Map(leads.map((lead) => [getLeadKey(lead), lead]));
-  let added = 0;
-
-  incoming.forEach((rawLead) => {
-    const normalized = normalizeLead({
-      ...rawLead,
-      status: rawLead.status || rawLead.callWorkflowStatus || '',
-      rawCallStatuses: rawLead.rawCallStatuses || (rawLead.callStatus ? [{ sheet: source, value: rawLead.callStatus }] : []),
-      sourceSheets: rawLead.sourceSheets || (rawLead.sheetName ? [rawLead.sheetName] : [source])
-    });
-
-    const key = getLeadKey(normalized);
-    const existing = byKey.get(key);
-    if (!existing) {
-      normalized.id = leads.reduce((max, lead) => Math.max(max, Number(lead.id) || 0), 0) + 1 + added;
-      normalized.log = [...normalized.log, { time: new Date().toLocaleString(), text: `Imported from ${source}` }];
-      leads.push(normalized);
-      byKey.set(key, normalized);
-      added++;
-      return;
-    }
-
-    existing.name = normalized.name || existing.name;
-    existing.phone = normalized.phone || existing.phone;
-    existing.address = normalized.address || existing.address;
-    existing.zip = normalized.zip || existing.zip;
-    existing.category = normalized.category || existing.category;
-    existing.rating = normalized.rating || existing.rating;
-    existing.reviews = normalized.reviews || existing.reviews;
-    existing.website = normalized.website || existing.website;
-    existing.placeUrl = normalized.placeUrl || existing.placeUrl;
-    existing.plusCode = normalized.plusCode || existing.plusCode;
-    existing.currentStatus = normalized.currentStatus || existing.currentStatus;
-    existing.scrapedAt = normalized.scrapedAt || existing.scrapedAt;
-    existing.importedAt = normalized.importedAt || existing.importedAt;
-    existing.rawCallStatuses = normalized.rawCallStatuses.length ? normalized.rawCallStatuses : existing.rawCallStatuses;
-    existing.sourceSheets = Array.from(new Set([...(existing.sourceSheets || []), ...(normalized.sourceSheets || [])]));
-    existing.scheduledMeeting = normalized.scheduledMeeting || existing.scheduledMeeting;
-    if (!existing.statusSource || existing.statusSource === 'sheet') {
-      existing.status = normalized.status || existing.status;
-      existing.statusSource = normalized.status ? 'sheet' : existing.statusSource;
-    }
-  });
-
-  extensionSyncMeta = {
-    count: incoming.length,
-    syncedAt: new Date().toISOString(),
-    source
-  };
-  updateExtensionSyncStatus();
-  saveLeads();
-  renderStats();
-  renderList();
-  if (currentId) renderDetail();
-  return added;
-}
-
-async function consumeExtensionPayload() {
+async function connectGoogleSheet() {
   try {
-    const raw = localStorage.getItem(EXTENSION_STORE_KEY);
-    if (!raw) return;
-    const payload = JSON.parse(raw);
-    if (!payload) return;
-    mergeImportedLeads(payload, payload.source || 'extension');
-  } catch (e) {
-    updateExtensionSyncStatus('Extension payload could not be read', true);
-  }
-}
-
-async function registerPushBridge() {
-  pushEndpointUrl = new URL(PUSH_ENDPOINT_PATH, window.location.href).href;
-  setPushEndpointUi(pushEndpointUrl, 'Paste this exact URL into the extension, click Save there, then use Push to Site.');
-
-  if (!('serviceWorker' in navigator) || !window.isSecureContext) {
-    updateExtensionSyncStatus('Push bridge needs HTTPS or localhost', true);
-    setPushEndpointUi(
-      pushEndpointUrl,
-      'This bridge only works on HTTPS or localhost because service workers are required.'
-    );
-    return;
-  }
-
-  try {
-    await navigator.serviceWorker.register('./bridge-sw.js');
-    await navigator.serviceWorker.ready;
-    updateExtensionSyncStatus('Push bridge ready');
-    await consumeBridgeQueue();
+    await ensureGoogleAccessToken({ interactive: true });
+    await loadLeads();
+    renderStats();
+    renderList();
+    toast('Google Sheet connected', 'ok');
   } catch (error) {
-    updateExtensionSyncStatus('Push bridge could not start', true);
-    setPushEndpointUi(pushEndpointUrl, 'Service worker registration failed, so the endpoint is not active yet.');
+    updateSheetSnapshotStatus(error.message || 'Google connection failed', true);
   }
 }
 
-async function consumeBridgeQueue() {
-  if (!pushEndpointUrl) return;
-
-  try {
-    const response = await fetch(pushEndpointUrl, { cache: 'no-store' });
-    if (!response.ok) return;
-
-    const payload = await response.json();
-    const queue = Array.isArray(payload?.queue) ? payload.queue : [];
-    if (!queue.length) return;
-
-    let totalAdded = 0;
-    queue.forEach((entry) => {
-      totalAdded += mergeImportedLeads(entry, entry?.source || 'extension bridge');
-    });
-
-    await fetch(pushEndpointUrl, { method: 'DELETE' });
-    toast(`${totalAdded} new leads synced`, 'ok');
-  } catch (error) {
-    updateExtensionSyncStatus('Queued bridge sync failed', true);
+async function disconnectGoogleSheet() {
+  if (googleAccessToken && window.google?.accounts?.oauth2?.revoke) {
+    await new Promise((resolve) => window.google.accounts.oauth2.revoke(googleAccessToken, () => resolve()));
   }
+  googleAccessToken = '';
+  googleTokenExpiresAt = 0;
+  sheetSnapshotMeta = null;
+  updateGoogleAuthUi('Disconnected. Connect Google to reload the live sheet.');
+  updateSheetSnapshotStatus('Connect Google to load the live sheet.', true);
 }
 
-async function copyPushEndpoint() {
-  const field = document.getElementById('pushEndpointField');
-  if (!field) return;
-  const value = field.value;
-  if (!value || value === 'Preparing endpoint...') return;
-
-  try {
-    await navigator.clipboard.writeText(value);
-  } catch (error) {
-    field.removeAttribute('readonly');
-    field.select();
-    document.execCommand('copy');
-    field.setAttribute('readonly', 'readonly');
-  }
-  toast('Push endpoint copied', 'ok');
-}
-
-window.addEventListener('message', (event) => {
-  const data = event.data;
-  if (!data) return;
-  const looksLikeLeadSync = data.type === 'GRIDLINE_EXTENSION_LEADS' || Array.isArray(data.leads) || Array.isArray(data);
-  if (!looksLikeLeadSync) return;
-  const added = mergeImportedLeads(data, data.source || 'extension message');
-  toast(`${added} new leads synced`, 'ok');
-});
-
-window.addEventListener('storage', (event) => {
-  if (event.key === EXTENSION_STORE_KEY && event.newValue) consumeExtensionPayload();
-});
-
-window.addEventListener('gridline:leads-import', (event) => {
-  const payload = event.detail;
-  if (!payload) return;
-  const added = mergeImportedLeads(payload, payload.source || 'extension event');
-  toast(`${added} new leads synced`, 'ok');
-});
-
-navigator.serviceWorker?.addEventListener('message', (event) => {
-  const payload = event.data;
-  if (!payload) return;
-  const looksLikeLeadSync = payload.type === 'GRIDLINE_EXTENSION_LEADS' || Array.isArray(payload.leads);
-  if (!looksLikeLeadSync) return;
-  const added = mergeImportedLeads(payload, payload.source || 'service worker');
-  toast(`${added} new leads synced`, 'ok');
-});
-
-window.gridlineAdminImport = (payload) => {
-  const added = mergeImportedLeads(payload, payload?.source || 'extension bridge');
-  toast(`${added} new leads synced`, 'ok');
-};
+waitForGoogleAuth();
 
 document.getElementById('unlockBtn').addEventListener('click', tryUnlock);
 document.getElementById('passInput').addEventListener('keydown', (event) => {
@@ -1269,7 +1480,6 @@ async function tryUnlock() {
   document.getElementById('lockScreen').style.display = 'none';
   document.getElementById('adminApp').style.display = 'flex';
   await loadLeads();
-  await registerPushBridge();
   renderStats();
   renderList();
 }
