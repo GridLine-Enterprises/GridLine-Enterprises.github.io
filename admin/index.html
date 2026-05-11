@@ -199,6 +199,14 @@
       border-right:1px solid var(--line);
       display:flex;flex-direction:column;overflow:hidden;
     }
+    .sidebar-scroll{
+      flex:1 1 auto;
+      min-height:0;
+      overflow-y:auto;
+    }
+    .sidebar-scroll::-webkit-scrollbar{width:4px;}
+    .sidebar-scroll::-webkit-scrollbar-track{background:transparent;}
+    .sidebar-scroll::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:999px;}
     .sidebar-controls{
       padding:12px;border-bottom:1px solid var(--line);
       display:flex;flex-direction:column;gap:8px;
@@ -534,6 +542,66 @@
       line-height:1.5;
       color:var(--text);
     }
+    .settings-stack{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top:12px;
+    }
+    .settings-label{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      font-size:11px;
+      color:var(--muted);
+    }
+    .settings-hint{
+      font-size:10px;
+      color:rgba(152,164,184,0.72);
+      line-height:1.5;
+    }
+    .settings-input{
+      width:100%;
+      background:rgba(255,255,255,0.05);
+      border:1px solid var(--line-strong);
+      border-radius:var(--radius-sm);
+      color:var(--text);
+      font-size:12px;
+      padding:9px 11px;
+      font-family:"Manrope",sans-serif;
+      outline:none;
+    }
+    .settings-input:focus{border-color:rgba(198,255,77,0.4);}
+    .settings-row{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .settings-btn{
+      font-size:11px;
+      font-weight:700;
+      border-radius:999px;
+      border:1px solid var(--line-strong);
+      padding:7px 12px;
+      cursor:pointer;
+      transition:all 120ms;
+      font-family:"Manrope",sans-serif;
+      background:rgba(255,255,255,0.04);
+      color:var(--text);
+    }
+    .settings-btn:hover{background:rgba(255,255,255,0.08);}
+    .settings-btn-primary{
+      color:#07090d;
+      border-color:rgba(198,255,77,0.45);
+      background:linear-gradient(135deg,var(--accent),#efffb6);
+    }
+    .settings-btn-primary:hover{opacity:0.92;}
+    .settings-feedback{
+      font-size:11px;
+      line-height:1.5;
+      color:var(--muted);
+      min-height:16px;
+    }
     .extension-card{
       margin:16px;
       margin-top:0;
@@ -820,6 +888,7 @@
 
     <!-- Sidebar -->
     <div class="sidebar">
+      <div class="sidebar-scroll">
       <div class="sidebar-controls">
         <div class="search-wrap">
           <span class="search-icon">
@@ -844,7 +913,8 @@
             <option value="name">Name A–Z</option>
             <option value="rating">Rating ↓</option>
             <option value="status">Status</option>
-            <option value="recent">Most recent</option>
+            <option value="scraped-recent">Recently scraped</option>
+            <option value="recent">Recently imported</option>
           </select>
           <button class="auto-assign-btn" onclick="autoAssign()">⚡ Auto-assign</button>
         </div>
@@ -859,6 +929,17 @@
             <strong id="sheetSnapshotStatus">Connect Google to load the live sheet.</strong>
           </div>
         </div>
+        <div class="settings-stack">
+          <label class="settings-label" for="googleSheetIdInput">
+            Spreadsheet ID
+            <span class="settings-hint">Use the same spreadsheet ID you paste into the extension settings. It is the value after <code>/d/</code> in the Google Sheets URL.</span>
+            <input class="settings-input" id="googleSheetIdInput" type="text" placeholder="Paste the spreadsheet ID" autocomplete="off">
+          </label>
+          <div class="settings-row">
+            <button class="settings-btn settings-btn-primary" type="button" onclick="saveGoogleSheetSettings()">Save Sheet ID</button>
+          </div>
+          <div class="settings-feedback" id="googleSettingsFeedback">Save the spreadsheet ID once, then just connect Google when you want to refresh.</div>
+        </div>
         <div class="auth-strip">
           <div class="auth-strip-head">
             <div class="auth-strip-title">Google Sheets access</div>
@@ -869,7 +950,7 @@
           </div>
           <div class="auth-status" id="googleAuthStatus">Preparing Google authorization...</div>
         </div>
-        <p class="sync-note">There is no push endpoint or local JSON snapshot anymore. The placeholder parser below reads the live workbook directly.</p>
+        <p class="sync-note">Save the sheet ID once, then reconnect anytime to refresh the live workbook. No separate verify step is required.</p>
       </div>
 
       <div class="extension-card">
@@ -883,9 +964,10 @@
           <div class="setup-item"><div class="setup-num">1</div><div>Download <code>gmaps-gridline.zip</code> and extract it so you have the <code>gmaps-gridline</code> folder with <code>manifest.json</code> inside.</div></div>
           <div class="setup-item"><div class="setup-num">2</div><div>Open <code>chrome://extensions</code>, turn on <b>Developer mode</b>, then click <b>Load unpacked</b> and choose that extracted folder.</div></div>
           <div class="setup-item"><div class="setup-num">3</div><div>Open the extension, click the gear icon, and paste this spreadsheet ID: <code>1MJ5sJqP-t0bWz93O_XYlCjoA7nU__mJ1T_PZT1Pr_K4</code>.</div></div>
-          <div class="setup-item"><div class="setup-num">4</div><div>Click <b>Verify</b>, then <b>Save Settings</b>. When prompted, sign in with the Google account that can edit the sheet.</div></div>
+          <div class="setup-item"><div class="setup-num">4</div><div>Save the spreadsheet ID in settings. When prompted, sign in with the Google account that can edit the sheet.</div></div>
           <div class="setup-item"><div class="setup-num">5</div><div>Go to Google Maps, scrape leads, then use <b>Push to Google Sheets</b>. The extension will create a dated tab and also write the same rows into <code>Master</code>.</div></div>
         </div>
+      </div>
       </div>
 
       <div class="export-bar">
@@ -924,11 +1006,13 @@
 const PASSKEY = 'momoneymopower';
 const REPS = ['Abdel', 'Nitai', 'Lucas', 'Edem'];
 const STORE_KEY = 'gridline_leads_v2';
-const GOOGLE_OAUTH_CONFIG = {
-  clientId: 'YOUR_GOOGLE_WEB_CLIENT_ID.apps.googleusercontent.com',
+const GOOGLE_SETTINGS_KEY = 'gridline_google_sheet_settings_v1';
+const GOOGLE_AUTH_STORE_KEY = 'gridline_google_auth_v1';
+const DEFAULT_GOOGLE_OAUTH_CONFIG = {
+  clientId: '68891682792-6k7udd71tp0mj2lcv5gtl8r540lque2t.apps.googleusercontent.com',
   scopes: 'https://www.googleapis.com/auth/spreadsheets.readonly'
 };
-const GOOGLE_SHEET_CONFIG = {
+const DEFAULT_GOOGLE_SHEET_CONFIG = {
   spreadsheetId: '1MJ5sJqP-t0bWz93O_XYlCjoA7nU__mJ1T_PZT1Pr_K4',
   schedulingSheet: 'Scheduling',
   extraStatusSheets: [],
@@ -936,6 +1020,8 @@ const GOOGLE_SHEET_CONFIG = {
   // Add extra status tabs here when you want to merge notes/status columns
   // from other tabs into the same lead record shape.
 };
+let googleOAuthConfig = { ...DEFAULT_GOOGLE_OAUTH_CONFIG };
+let googleSheetConfig = { ...DEFAULT_GOOGLE_SHEET_CONFIG };
 const BASE_LEAD_COLUMNS = [
   'placeUrl',
   'title',
@@ -949,6 +1035,32 @@ const BASE_LEAD_COLUMNS = [
   'currentStatus',
   'scrapedAt',
   'importedAt'
+];
+const LEAD_HEADER_ALIASES = {
+  placeUrl: ['placeurl', 'mapsurl', 'mapurl', 'googlemapsurl', 'businessurl'],
+  title: ['title', 'name', 'businessname', 'company', 'business'],
+  rating: ['rating', 'stars'],
+  reviewCount: ['reviewcount', 'reviews', 'reviewtotal'],
+  category: ['category', 'type', 'industry'],
+  address: ['address', 'streetaddress', 'location'],
+  plusCode: ['pluscode'],
+  website: ['website', 'site', 'web'],
+  phoneNumber: ['phonenumber', 'phone', 'telephone', 'number'],
+  currentStatus: ['currentstatus', 'status', 'hoursstatus', 'openingstatus', 'openstatus'],
+  scrapedAt: ['scrapedat', 'scrapedon', 'lastchecked', 'checkedat'],
+  importedAt: ['importedat', 'importedon', 'createdat', 'addedat']
+};
+const STATUS_VALUE_HEADERS = [
+  'callstatus',
+  'status',
+  'notes',
+  'note',
+  'disposition',
+  'result',
+  'outcome',
+  'callresult',
+  'comments',
+  'followup'
 ];
 
 let leads = [];
@@ -979,6 +1091,10 @@ function cleanText(value) {
     .trim();
 }
 
+function normalizeHeaderName(value) {
+  return cleanText(value).toLowerCase().replace(/[^a-z0-9]+/g, '');
+}
+
 function escapeHtml(value) {
   return String(value || '')
     .replace(/&/g, '&amp;')
@@ -994,14 +1110,101 @@ function extractZip(address) {
 }
 
 function getLeadKey(lead) {
-  return (lead.placeUrl || '').trim() || normalizePhone(lead.phone) || `${(lead.name || '').trim().toLowerCase()}|${(lead.address || '').trim().toLowerCase()}`;
+  const placeUrl = cleanText(lead.placeUrl || '').toLowerCase();
+  if (placeUrl) return `url:${placeUrl}`;
+
+  const phone = normalizePhone(lead.phone);
+  if (phone) return `phone:${phone}`;
+
+  const name = cleanText(lead.name || '').toLowerCase();
+  const address = cleanText(lead.address || '').toLowerCase();
+  if (name || address) return `nameaddr:${name}|${address}`;
+
+  return `fallback:${cleanText(JSON.stringify(lead)).toLowerCase()}`;
+}
+
+function findHeaderIndex(headers = [], aliases = []) {
+  const normalizedAliases = aliases.map(normalizeHeaderName);
+  return headers.findIndex((header) => normalizedAliases.includes(normalizeHeaderName(header)));
+}
+
+function buildLeadColumnMap(headers = []) {
+  return Object.fromEntries(Object.entries(LEAD_HEADER_ALIASES).map(([key, aliases]) => [
+    key,
+    findHeaderIndex(headers, aliases)
+  ]));
 }
 
 function hasGoogleClientIdConfigured() {
   return Boolean(
-    GOOGLE_OAUTH_CONFIG.clientId
-    && !GOOGLE_OAUTH_CONFIG.clientId.startsWith('YOUR_GOOGLE_WEB_CLIENT_ID')
+    googleOAuthConfig.clientId
+    && !googleOAuthConfig.clientId.startsWith('YOUR_GOOGLE_WEB_CLIENT_ID')
   );
+}
+
+function hasSpreadsheetIdConfigured() {
+  return Boolean(cleanText(googleSheetConfig.spreadsheetId));
+}
+
+function updateGoogleSettingsFeedback(message, isError = false) {
+  const el = document.getElementById('googleSettingsFeedback');
+  if (!el) return;
+  el.textContent = message;
+  el.style.color = isError ? 'var(--danger)' : 'var(--muted)';
+}
+
+function syncGoogleSettingsInputs() {
+  const sheetInput = document.getElementById('googleSheetIdInput');
+  if (sheetInput) sheetInput.value = googleSheetConfig.spreadsheetId || '';
+}
+
+function loadGoogleSheetSettings() {
+  try {
+    const raw = localStorage.getItem(GOOGLE_SETTINGS_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    googleSheetConfig = {
+      ...DEFAULT_GOOGLE_SHEET_CONFIG,
+      spreadsheetId: cleanText(parsed.spreadsheetId || DEFAULT_GOOGLE_SHEET_CONFIG.spreadsheetId)
+    };
+  } catch (error) {}
+}
+
+function persistGoogleSheetSettings() {
+  localStorage.setItem(GOOGLE_SETTINGS_KEY, JSON.stringify({
+    spreadsheetId: googleSheetConfig.spreadsheetId
+  }));
+}
+
+function loadRememberedGoogleSession() {
+  try {
+    const raw = localStorage.getItem(GOOGLE_AUTH_STORE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    googleAccessToken = cleanText(parsed.accessToken || '');
+    googleTokenExpiresAt = Number(parsed.expiresAt) || 0;
+  } catch (error) {}
+}
+
+function persistRememberedGoogleSession() {
+  localStorage.setItem(GOOGLE_AUTH_STORE_KEY, JSON.stringify({
+    accessToken: googleAccessToken,
+    expiresAt: googleTokenExpiresAt
+  }));
+}
+
+function clearRememberedGoogleSession() {
+  googleAccessToken = '';
+  googleTokenExpiresAt = 0;
+  localStorage.removeItem(GOOGLE_AUTH_STORE_KEY);
+}
+
+function applyGoogleSheetSettingsFromInputs() {
+  const sheetInput = document.getElementById('googleSheetIdInput');
+  googleSheetConfig = {
+    ...googleSheetConfig,
+    spreadsheetId: cleanText(sheetInput?.value || '')
+  };
 }
 
 function updateGoogleAuthUi(message, isError = false) {
@@ -1011,7 +1214,7 @@ function updateGoogleAuthUi(message, isError = false) {
   if (status) status.textContent = message;
   if (status) status.style.color = isError ? 'var(--danger)' : 'var(--text)';
   if (connectBtn) {
-    connectBtn.disabled = !googleAuthReady || !hasGoogleClientIdConfigured() || googleAuthState === 'pending';
+    connectBtn.disabled = !googleAuthReady || !hasGoogleClientIdConfigured() || !hasSpreadsheetIdConfigured() || googleAuthState === 'pending';
     connectBtn.textContent = googleAccessToken ? 'Refresh sheet' : 'Connect Google';
   }
   if (disconnectBtn) disconnectBtn.disabled = !googleAccessToken;
@@ -1019,23 +1222,37 @@ function updateGoogleAuthUi(message, isError = false) {
 
 function initializeGoogleAuth() {
   if (!hasGoogleClientIdConfigured()) {
-    updateGoogleAuthUi('Add a web OAuth client ID in GOOGLE_OAUTH_CONFIG to enable live Sheets access.', true);
+    googleAuthReady = false;
+    googleTokenClient = null;
+    updateGoogleAuthUi('Save a Google web OAuth client ID to enable live Sheets access.', true);
     updateSheetSnapshotStatus('Add a Google web client ID to load the live sheet.', true);
     return;
   }
 
+  if (!hasSpreadsheetIdConfigured()) {
+    googleAuthReady = false;
+    googleTokenClient = null;
+    updateGoogleAuthUi('Save a spreadsheet ID to enable live Sheets access.', true);
+    updateSheetSnapshotStatus('Add a spreadsheet ID to load the live sheet.', true);
+    return;
+  }
+
   if (!window.google?.accounts?.oauth2) {
+    googleAuthReady = false;
     updateGoogleAuthUi('Google authorization script not ready yet.', true);
     return;
   }
 
   googleTokenClient = window.google.accounts.oauth2.initTokenClient({
-    client_id: GOOGLE_OAUTH_CONFIG.clientId,
-    scope: GOOGLE_OAUTH_CONFIG.scopes,
+    client_id: googleOAuthConfig.clientId,
+    scope: googleOAuthConfig.scopes,
     callback: () => {}
   });
   googleAuthReady = true;
-  updateGoogleAuthUi('Connect Google to read the spreadsheet with your account.');
+  const stillValid = googleAccessToken && Date.now() < (googleTokenExpiresAt - 60_000);
+  updateGoogleAuthUi(stillValid
+    ? 'Google session remembered. Refresh the sheet any time.'
+    : 'Connect Google to read the saved spreadsheet with your account.');
 }
 
 function waitForGoogleAuth() {
@@ -1075,6 +1292,7 @@ async function requestGoogleAccessToken(prompt = 'consent') {
 
       googleAccessToken = response.access_token || '';
       googleTokenExpiresAt = Date.now() + ((response.expires_in || 0) * 1000);
+      persistRememberedGoogleSession();
       updateGoogleAuthUi('Google connected. Live sheet access is ready.');
       resolve(googleAccessToken);
     };
@@ -1086,7 +1304,17 @@ async function requestGoogleAccessToken(prompt = 'consent') {
 async function ensureGoogleAccessToken({ interactive = false } = {}) {
   const stillValid = googleAccessToken && Date.now() < (googleTokenExpiresAt - 60_000);
   if (stillValid) return googleAccessToken;
-  if (!interactive) throw new Error('Google authorization required');
+  if (!interactive) {
+    const hasRememberedSession = googleAccessToken || googleTokenExpiresAt;
+    if (hasRememberedSession) {
+      try {
+        return await requestGoogleAccessToken('');
+      } catch (error) {
+        clearRememberedGoogleSession();
+      }
+    }
+    throw new Error('Google authorization required');
+  }
   return requestGoogleAccessToken(googleAccessToken ? '' : 'consent');
 }
 
@@ -1099,8 +1327,7 @@ async function googleSheetsApi(path, token) {
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
     if (response.status === 401) {
-      googleAccessToken = '';
-      googleTokenExpiresAt = 0;
+      clearRememberedGoogleSession();
       updateGoogleAuthUi('Google session expired. Connect again to refresh the sheet.', true);
     }
     throw new Error(error?.error?.message || `Google Sheets API error (${response.status})`);
@@ -1109,17 +1336,21 @@ async function googleSheetsApi(path, token) {
   return response.json();
 }
 
-async function fetchSpreadsheetSheetTitles(token) {
-  const data = await googleSheetsApi(
-    `spreadsheets/${GOOGLE_SHEET_CONFIG.spreadsheetId}?fields=sheets.properties(title)`,
+async function fetchSpreadsheetMeta(token) {
+  return googleSheetsApi(
+    `spreadsheets/${googleSheetConfig.spreadsheetId}?fields=properties.title,sheets.properties(title)`,
     token
   );
+}
+
+async function fetchSpreadsheetSheetTitles(token) {
+  const data = await fetchSpreadsheetMeta(token);
   return (data.sheets || []).map((sheet) => cleanText(sheet.properties?.title)).filter(Boolean);
 }
 
 async function fetchSheetRows(sheetName, token) {
   const data = await googleSheetsApi(
-    `spreadsheets/${GOOGLE_SHEET_CONFIG.spreadsheetId}/values/${encodeURIComponent(`${sheetName}!A:Z`)}`,
+    `spreadsheets/${googleSheetConfig.spreadsheetId}/values/${encodeURIComponent(`${sheetName}!A:Z`)}`,
     token
   );
   return (data.values || []).map((row) => row.map(cleanText)).filter((entry) => entry.some(Boolean));
@@ -1127,28 +1358,92 @@ async function fetchSheetRows(sheetName, token) {
 
 function isLeadSheet(headers = []) {
   if (!headers.length) return false;
-  return BASE_LEAD_COLUMNS.every((column, index) => cleanText(headers[index]).toLowerCase() === column.toLowerCase());
+  const columnMap = buildLeadColumnMap(headers);
+  const requiredMatches = ['title', 'phoneNumber', 'address', 'category']
+    .filter((key) => Number.isInteger(columnMap[key]) && columnMap[key] >= 0)
+    .length;
+  const totalMatches = Object.values(columnMap).filter((index) => Number.isInteger(index) && index >= 0).length;
+  return requiredMatches >= 2 && totalMatches >= 5;
 }
 
 function mapLeadRow(headers, values, sheetName) {
   const mapped = {};
+  const columnMap = buildLeadColumnMap(headers);
+  const statusIndices = headers
+    .map((header, index) => ({ header: normalizeHeaderName(header), index }))
+    .filter(({ header, index }) => !Object.values(columnMap).includes(index) && STATUS_VALUE_HEADERS.includes(header))
+    .map(({ index }) => index);
 
   BASE_LEAD_COLUMNS.forEach((key, index) => {
-    mapped[key] = values[index] || '';
+    const mappedIndex = columnMap[key];
+    mapped[key] = Number.isInteger(mappedIndex) && mappedIndex >= 0
+      ? values[mappedIndex] || ''
+      : values[index] || '';
   });
 
-  const normalizedHeaders = headers.map((header) => cleanText(header).toLowerCase());
-  const extraValues = values
-    .slice(normalizedHeaders.length || BASE_LEAD_COLUMNS.length)
-    .map(cleanText)
-    .filter(Boolean);
-  const rawCallStatuses = extraValues.map((value) => ({ sheet: sheetName, value }));
+  const rawCallStatuses = statusIndices
+    .map((index) => cleanText(values[index]))
+    .filter(Boolean)
+    .map((value) => ({ sheet: sheetName, value }));
 
   return {
     ...mapped,
     sourceSheets: [sheetName],
     rawCallStatuses
   };
+}
+
+function parseStatusSheet(sheetName, rows) {
+  if (!rows.length) return [];
+  const [headers, ...dataRows] = rows;
+  const normalizedHeaders = headers.map(normalizeHeaderName);
+  const phoneIndex = findHeaderIndex(headers, ['phonenumber', 'phone', 'telephone', 'number']);
+  const nameIndex = findHeaderIndex(headers, ['name', 'title', 'businessname', 'company', 'business']);
+  const addressIndex = findHeaderIndex(headers, ['address', 'streetaddress', 'location']);
+  const statusIndices = normalizedHeaders
+    .map((header, index) => ({ header, index }))
+    .filter(({ header }) => STATUS_VALUE_HEADERS.includes(header))
+    .map(({ index }) => index);
+
+  if (!statusIndices.length || (phoneIndex < 0 && nameIndex < 0)) return [];
+
+  return dataRows
+    .filter((row) => row.some((cell) => cleanText(cell)))
+    .flatMap((row) => {
+      const rawValues = statusIndices
+        .map((index) => cleanText(row[index]))
+        .filter(Boolean);
+      if (!rawValues.length) return [];
+      return [{
+        sheet: sheetName,
+        phone: cleanText(row[phoneIndex] || ''),
+        name: cleanText(row[nameIndex] || ''),
+        address: cleanText(row[addressIndex] || ''),
+        values: rawValues
+      }];
+    });
+}
+
+function mergeLeadRecords(existing, incoming) {
+  existing.rawCallStatuses = [
+    ...(existing.rawCallStatuses || []),
+    ...(incoming.rawCallStatuses || [])
+  ];
+  existing.sourceSheets = Array.from(new Set([
+    ...(existing.sourceSheets || []),
+    ...(incoming.sourceSheets || [])
+  ]));
+  existing.currentStatus = existing.currentStatus || incoming.currentStatus;
+  existing.scrapedAt = existing.scrapedAt || incoming.scrapedAt;
+  existing.importedAt = existing.importedAt || incoming.importedAt;
+  existing.placeUrl = existing.placeUrl || incoming.placeUrl;
+  existing.phone = existing.phone || incoming.phone;
+  existing.address = existing.address || incoming.address;
+  existing.category = existing.category || incoming.category;
+  existing.website = existing.website || incoming.website;
+  existing.plusCode = existing.plusCode || incoming.plusCode;
+  existing.rating = existing.rating || incoming.rating;
+  existing.reviews = existing.reviews || incoming.reviews;
 }
 
 function parseLeadSheet(sheetName, rows) {
@@ -1178,7 +1473,7 @@ function parseSchedulingSheet(rows) {
       company,
       demoDate: cleanText(row[indexByHeader.get('demo date/time')] || ''),
       meetingLink: cleanText(row[indexByHeader.get('meeting link')] || ''),
-      sheet: GOOGLE_SHEET_CONFIG.schedulingSheet
+      sheet: googleSheetConfig.schedulingSheet
     };
 
     if (contactName) meetings.set(contactName.toLowerCase(), meeting);
@@ -1191,62 +1486,102 @@ function parseSchedulingSheet(rows) {
 async function fetchGoogleSheetSnapshot() {
   const token = await ensureGoogleAccessToken({ interactive: false });
   const sheetTitles = await fetchSpreadsheetSheetTitles(token);
-  const visibleLeadSheets = sheetTitles.filter((title) => title && title !== GOOGLE_SHEET_CONFIG.schedulingSheet);
-  const uniqueLeadSheets = Array.from(new Set([
-    ...visibleLeadSheets,
-    ...GOOGLE_SHEET_CONFIG.extraStatusSheets
-  ]));
-  const leadSheetResults = await Promise.all(uniqueLeadSheets.map((sheetName) => fetchSheetRows(sheetName, token)));
-  const schedulingRows = sheetTitles.includes(GOOGLE_SHEET_CONFIG.schedulingSheet)
-    ? await fetchSheetRows(GOOGLE_SHEET_CONFIG.schedulingSheet, token)
+  const allDataSheetTitles = Array.from(new Set(
+    sheetTitles.filter((title) => title && title !== googleSheetConfig.schedulingSheet)
+  ));
+  const leadSheetResults = await Promise.all(allDataSheetTitles.map((sheetName) => fetchSheetRows(sheetName, token)));
+  const schedulingRows = sheetTitles.includes(googleSheetConfig.schedulingSheet)
+    ? await fetchSheetRows(googleSheetConfig.schedulingSheet, token)
     : [];
   const schedulingMap = parseSchedulingSheet(schedulingRows);
   const byKey = new Map();
+  const statusEntries = [];
+  let rawLeadRowCount = 0;
+  let duplicateLeadRowCount = 0;
+  const parsedLeadSheets = [];
+  const parsedStatusSheets = [];
+  const ignoredSheets = [];
 
   leadSheetResults.forEach((rows, index) => {
-    const sheetName = uniqueLeadSheets[index];
+    const sheetName = allDataSheetTitles[index];
     if (!rows.length) return;
     const headers = rows[0] || [];
-    if (!isLeadSheet(headers)) return;
-    parseLeadSheet(sheetName, rows).forEach((rawLead) => {
-      const normalized = normalizeLead(rawLead);
-      const key = getLeadKey(normalized);
-      const existing = byKey.get(key);
+    if (isLeadSheet(headers)) {
+      parsedLeadSheets.push(sheetName);
+      parseLeadSheet(sheetName, rows).forEach((rawLead) => {
+        rawLeadRowCount += 1;
+        const normalized = normalizeLead(rawLead);
+        const key = getLeadKey(normalized);
+        const existing = byKey.get(key);
 
-      if (!existing) {
-        byKey.set(key, normalized);
-        return;
-      }
+        if (!existing) {
+          byKey.set(key, normalized);
+          return;
+        }
 
-      existing.rawCallStatuses = [
-        ...(existing.rawCallStatuses || []),
-        ...(normalized.rawCallStatuses || [])
-      ];
-      existing.sourceSheets = Array.from(new Set([
-        ...(existing.sourceSheets || []),
-        ...(normalized.sourceSheets || [])
-      ]));
-      existing.currentStatus = existing.currentStatus || normalized.currentStatus;
-      existing.scrapedAt = existing.scrapedAt || normalized.scrapedAt;
-      existing.importedAt = existing.importedAt || normalized.importedAt;
-    });
+        duplicateLeadRowCount += 1;
+        mergeLeadRecords(existing, normalized);
+      });
+      return;
+    }
+
+    const parsedStatuses = parseStatusSheet(sheetName, rows);
+    if (parsedStatuses.length) {
+      parsedStatusSheets.push(sheetName);
+      statusEntries.push(...parsedStatuses);
+      return;
+    }
+
+    ignoredSheets.push(sheetName);
   });
 
-  const leadsFromSheet = Array.from(byKey.values()).map((lead, index) => {
+  const leadsFromSheet = Array.from(byKey.values()).map((lead) => {
+    const sourceLead = normalizeLead(lead);
+    const phoneKey = normalizePhone(sourceLead.phone);
+    const nameKey = cleanText(sourceLead.name).toLowerCase();
+    const addressKey = cleanText(sourceLead.address).toLowerCase();
+    const matchingStatusEntries = statusEntries.filter((entry) => {
+      const samePhone = phoneKey && normalizePhone(entry.phone) === phoneKey;
+      const sameName = nameKey && cleanText(entry.name).toLowerCase() === nameKey;
+      const sameAddress = addressKey && cleanText(entry.address).toLowerCase() === addressKey;
+      return samePhone || (sameName && (!entry.address || sameAddress));
+    });
+
+    if (!matchingStatusEntries.length) return sourceLead;
+
+    return normalizeLead({
+      ...sourceLead,
+      rawCallStatuses: [
+        ...(sourceLead.rawCallStatuses || []),
+        ...matchingStatusEntries.flatMap((entry) => entry.values.map((value) => ({
+          sheet: entry.sheet,
+          value
+        })))
+      ],
+      sourceSheets: Array.from(new Set([
+        ...(sourceLead.sourceSheets || []),
+        ...matchingStatusEntries.map((entry) => entry.sheet).filter(Boolean)
+      ]))
+    });
+  }).map((lead, index) => {
     const nameKey = (lead.name || '').trim().toLowerCase();
     const meeting = schedulingMap.get(nameKey);
 
     return normalizeLead({
       ...lead,
-      id: index + 1,
       scheduledMeeting: meeting || null
     });
   });
 
   return {
     generatedAt: new Date().toISOString(),
-    spreadsheetId: GOOGLE_SHEET_CONFIG.spreadsheetId,
-    sheetNames: uniqueLeadSheets,
+    spreadsheetId: googleSheetConfig.spreadsheetId,
+    sheetNames: allDataSheetTitles,
+    leadSheets: parsedLeadSheets,
+    statusSheets: parsedStatusSheets,
+    ignoredSheets,
+    rawLeadRowCount,
+    duplicateLeadRowCount,
     leadCount: leadsFromSheet.length,
     leads: leadsFromSheet
   };
@@ -1290,9 +1625,7 @@ function normalizeLead(raw = {}) {
       })).filter((entry) => entry.value)
     : [];
   const interpreted = interpretCallStatus(rawCallStatuses, raw.scheduledMeeting);
-
-  return {
-    id: Number(raw.id) || Date.now(),
+  const normalizedLead = {
     placeUrl: raw.placeUrl || raw.mapsUrl || '',
     name: cleanText(raw.name || raw.title || 'Unknown'),
     phone: cleanText(raw.phone || raw.phoneNumber),
@@ -1315,6 +1648,8 @@ function normalizeLead(raw = {}) {
     assignedTo: raw.assignedTo || '',
     statusSource: raw.statusSource || (raw.status ? 'user' : interpreted.source)
   };
+  normalizedLead.id = getLeadKey(normalizedLead);
+  return normalizedLead;
 }
 
 function parseHoursState(statusStr) {
@@ -1399,9 +1734,9 @@ async function loadLeads() {
           currentStatus: baseLead.currentStatus || saved.currentStatus,
           scrapedAt: baseLead.scrapedAt || saved.scrapedAt,
           importedAt: baseLead.importedAt || saved.importedAt,
-          id: saved.id || baseLead.id || index + 1
+          id: saved.id || baseLead.id
         })
-      : normalizeLead({ ...baseLead, id: index + 1 }));
+      : normalizeLead({ ...baseLead }));
     savedMap.delete(getLeadKey(baseLead));
   });
 
@@ -1424,14 +1759,21 @@ function updateSheetSnapshotStatus(message, isError = false) {
     return;
   }
   const generatedAt = sheetSnapshotMeta?.generatedAt ? new Date(sheetSnapshotMeta.generatedAt) : null;
+  const rawLeadRows = Number(sheetSnapshotMeta?.rawLeadRowCount || 0);
+  const duplicateRows = Number(sheetSnapshotMeta?.duplicateLeadRowCount || 0);
+  const uniqueLeads = Number(sheetSnapshotMeta?.leadCount || leads.length);
+  const parsedLeadSheetCount = Number(sheetSnapshotMeta?.leadSheets?.length || 0);
+  const parsedStatusSheetCount = Number(sheetSnapshotMeta?.statusSheets?.length || 0);
   el.textContent = generatedAt && !Number.isNaN(generatedAt.getTime())
-    ? `${sheetSnapshotMeta.leadCount || leads.length} leads from ${sheetSnapshotMeta.sheetNames?.length || 0} tabs - updated ${generatedAt.toLocaleString()}`
+    ? `${uniqueLeads} unique leads from ${rawLeadRows || uniqueLeads} rows across ${sheetSnapshotMeta.sheetNames?.length || 0} tabs (${parsedLeadSheetCount} lead, ${parsedStatusSheetCount} status, ${duplicateRows} duplicates merged) - updated ${generatedAt.toLocaleString()}`
     : `${sheetSnapshotMeta?.leadCount || leads.length} leads loaded`;
   el.style.color = 'var(--text)';
 }
 
 async function connectGoogleSheet() {
   try {
+    if (!hasGoogleClientIdConfigured()) throw new Error('Save a Google web client ID first.');
+    if (!hasSpreadsheetIdConfigured()) throw new Error('Save a spreadsheet ID first.');
     await ensureGoogleAccessToken({ interactive: true });
     await loadLeads();
     renderStats();
@@ -1446,13 +1788,26 @@ async function disconnectGoogleSheet() {
   if (googleAccessToken && window.google?.accounts?.oauth2?.revoke) {
     await new Promise((resolve) => window.google.accounts.oauth2.revoke(googleAccessToken, () => resolve()));
   }
-  googleAccessToken = '';
-  googleTokenExpiresAt = 0;
+  clearRememberedGoogleSession();
   sheetSnapshotMeta = null;
   updateGoogleAuthUi('Disconnected. Connect Google to reload the live sheet.');
   updateSheetSnapshotStatus('Connect Google to load the live sheet.', true);
 }
 
+function saveGoogleSheetSettings() {
+  applyGoogleSheetSettingsFromInputs();
+  persistGoogleSheetSettings();
+  clearRememberedGoogleSession();
+  googleAuthReady = false;
+  googleTokenClient = null;
+  initializeGoogleAuth();
+  updateGoogleSettingsFeedback('Sheet ID saved. You can connect without verifying again.');
+  toast('Google sheet settings saved', 'ok');
+}
+
+loadGoogleSheetSettings();
+loadRememberedGoogleSession();
+syncGoogleSettingsInputs();
 waitForGoogleAuth();
 
 document.getElementById('unlockBtn').addEventListener('click', tryUnlock);
@@ -1568,6 +1923,7 @@ function renderList() {
   if (sort === 'name') src.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   else if (sort === 'rating') src.sort((a, b) => (b.rating || 0) - (a.rating || 0));
   else if (sort === 'status') src.sort((a, b) => (a.status || '').localeCompare(b.status || ''));
+  else if (sort === 'scraped-recent') src.sort((a, b) => new Date(b.scrapedAt || 0) - new Date(a.scrapedAt || 0));
   else if (sort === 'recent') src.sort((a, b) => new Date(b.importedAt || 0) - new Date(a.importedAt || 0));
 
   if (!src.length) {
@@ -1581,7 +1937,7 @@ function renderList() {
   document.getElementById('leadList').innerHTML = src.map((lead) => {
     const hours = getHoursSnapshot(lead);
     return `
-      <div class="lead-item${currentId === lead.id ? ' selected' : ''}" onclick="selectLead(${lead.id})">
+      <div class="lead-item${currentId === lead.id ? ' selected' : ''}" onclick='selectLead(${JSON.stringify(String(lead.id))})'>
         <div class="li-name">${escapeHtml(lead.name)}</div>
         <div class="li-meta">${escapeHtml(lead.phone || 'No phone')} - ${escapeHtml(lead.category || '')}</div>
         <div class="li-footer">
@@ -1702,7 +2058,7 @@ function renderDetail() {
     <div class="card">
       <div class="card-section-title">Call status</div>
       <div class="status-btns">
-        ${statuses.map((status) => `<button class="status-btn${lead.status === status ? ` sel-${status}` : ''}" onclick="setStatus(${lead.id}, '${status}')">${escapeHtml(statusLabel(status))}</button>`).join('')}
+        ${statuses.map((status) => `<button class="status-btn${lead.status === status ? ` sel-${status}` : ''}" onclick='setStatus(${JSON.stringify(String(lead.id))}, ${JSON.stringify(status)})'>${escapeHtml(statusLabel(status))}</button>`).join('')}
       </div>
     </div>
 
@@ -1713,7 +2069,7 @@ function renderDetail() {
       <div class="card-section-title">Assign rep</div>
       <div class="assign-row">
         <label>Assigned to:</label>
-        <select class="assign-select" onchange="assignRep(${lead.id}, this.value)">
+        <select class="assign-select" onchange='assignRep(${JSON.stringify(String(lead.id))}, this.value)'>
           <option value="">Unassigned</option>
           ${REPS.map((rep) => `<option value="${escapeHtml(rep)}"${lead.assignedTo === rep ? ' selected' : ''}>${escapeHtml(rep)}</option>`).join('')}
         </select>
@@ -1723,7 +2079,7 @@ function renderDetail() {
     <div class="card">
       <div class="card-section-title">Notes</div>
       <textarea class="notes-area" id="notesArea" placeholder="Add call notes, follow-up details...">${escapeHtml(lead.notes || '')}</textarea>
-      <button class="save-btn" onclick="saveNotes(${lead.id})">Save notes</button>
+      <button class="save-btn" onclick='saveNotes(${JSON.stringify(String(lead.id))})'>Save notes</button>
     </div>
 
     ${lead.log && lead.log.length ? `
