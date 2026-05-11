@@ -1109,18 +1109,66 @@ function extractZip(address) {
   return matches ? matches[matches.length - 1] : '';
 }
 
+function getPhoneKey(lead) {
+  const phone = normalizePhone(lead?.phone);
+  return phone ? `phone:${phone}` : '';
+}
+
+function getNameAddressKey(lead) {
+  const name = cleanText(lead?.name || '').toLowerCase();
+  const address = cleanText(lead?.address || '').toLowerCase();
+  return name || address ? `nameaddr:${name}|${address}` : '';
+}
+
 function getLeadKey(lead) {
   const placeUrl = cleanText(lead.placeUrl || '').toLowerCase();
   if (placeUrl) return `url:${placeUrl}`;
 
-  const phone = normalizePhone(lead.phone);
-  if (phone) return `phone:${phone}`;
+  const nameAddressKey = getNameAddressKey(lead);
+  if (nameAddressKey) return nameAddressKey;
 
-  const name = cleanText(lead.name || '').toLowerCase();
-  const address = cleanText(lead.address || '').toLowerCase();
-  if (name || address) return `nameaddr:${name}|${address}`;
+  const phoneKey = getPhoneKey(lead);
+  if (phoneKey) return phoneKey;
 
   return `fallback:${cleanText(JSON.stringify(lead)).toLowerCase()}`;
+}
+
+function findLeadMatch(byKey, byPhone, lead) {
+  const directKey = getLeadKey(lead);
+  if (byKey.has(directKey)) {
+    return { key: directKey, lead: byKey.get(directKey), reason: 'key' };
+  }
+
+  const phoneKey = getPhoneKey(lead);
+  if (phoneKey && byPhone.has(phoneKey)) {
+    const canonicalKey = byPhone.get(phoneKey);
+    if (byKey.has(canonicalKey)) {
+      return { key: canonicalKey, lead: byKey.get(canonicalKey), reason: 'phone' };
+    }
+  }
+
+  return null;
+}
+
+function findSavedLeadMatch(savedMap, lead) {
+  const targetKey = getLeadKey(lead);
+  if (savedMap.has(targetKey)) {
+    return { mapKey: targetKey, lead: savedMap.get(targetKey) };
+  }
+
+  const phoneKey = getPhoneKey(lead);
+  const nameAddressKey = getNameAddressKey(lead);
+
+  for (const [mapKey, savedLead] of savedMap.entries()) {
+    if (phoneKey && getPhoneKey(savedLead) === phoneKey) {
+      return { mapKey, lead: savedLead };
+    }
+    if (nameAddressKey && getNameAddressKey(savedLead) === nameAddressKey) {
+      return { mapKey, lead: savedLead };
+    }
+  }
+
+  return null;
 }
 
 function findHeaderIndex(headers = [], aliases = []) {
@@ -1495,6 +1543,7 @@ async function fetchGoogleSheetSnapshot() {
     : [];
   const schedulingMap = parseSchedulingSheet(schedulingRows);
   const byKey = new Map();
+  const byPhone = new Map();
   const statusEntries = [];
   let rawLeadRowCount = 0;
   let duplicateLeadRowCount = 0;
@@ -1511,16 +1560,20 @@ async function fetchGoogleSheetSnapshot() {
       parseLeadSheet(sheetName, rows).forEach((rawLead) => {
         rawLeadRowCount += 1;
         const normalized = normalizeLead(rawLead);
-        const key = getLeadKey(normalized);
-        const existing = byKey.get(key);
+        const match = findLeadMatch(byKey, byPhone, normalized);
 
-        if (!existing) {
+        if (!match) {
+          const key = getLeadKey(normalized);
           byKey.set(key, normalized);
+          const phoneKey = getPhoneKey(normalized);
+          if (phoneKey) byPhone.set(phoneKey, key);
           return;
         }
 
         duplicateLeadRowCount += 1;
-        mergeLeadRecords(existing, normalized);
+        mergeLeadRecords(match.lead, normalized);
+        const mergedPhoneKey = getPhoneKey(match.lead);
+        if (mergedPhoneKey) byPhone.set(mergedPhoneKey, match.key);
       });
       return;
     }
@@ -1723,7 +1776,8 @@ async function loadLeads() {
   const merged = [];
 
   baseLeads.forEach((baseLead, index) => {
-    const saved = savedMap.get(getLeadKey(baseLead));
+    const savedMatch = findSavedLeadMatch(savedMap, baseLead);
+    const saved = savedMatch?.lead;
     merged.push(saved
       ? normalizeLead({
           ...baseLead,
@@ -1737,7 +1791,7 @@ async function loadLeads() {
           id: saved.id || baseLead.id
         })
       : normalizeLead({ ...baseLead }));
-    savedMap.delete(getLeadKey(baseLead));
+    if (savedMatch) savedMap.delete(savedMatch.mapKey);
   });
 
   savedMap.forEach((saved) => merged.push(normalizeLead(saved)));
@@ -1817,6 +1871,26 @@ document.getElementById('passInput').addEventListener('keydown', (event) => {
 document.getElementById('togglePass').addEventListener('click', () => {
   const input = document.getElementById('passInput');
   input.type = input.type === 'password' ? 'text' : 'password';
+});
+document.getElementById('leadList').addEventListener('click', (event) => {
+  const item = event.target.closest('.lead-item[data-lead-id]');
+  if (!item) return;
+  selectLead(item.dataset.leadId);
+});
+document.getElementById('detailPane').addEventListener('click', (event) => {
+  const statusButton = event.target.closest('[data-action="set-status"]');
+  if (statusButton) {
+    setStatus(statusButton.dataset.leadId, statusButton.dataset.status);
+    return;
+  }
+
+  const saveButton = event.target.closest('[data-action="save-notes"]');
+  if (saveButton) saveNotes(saveButton.dataset.leadId);
+});
+document.getElementById('detailPane').addEventListener('change', (event) => {
+  const assignSelect = event.target.closest('.assign-select[data-action="assign-rep"]');
+  if (!assignSelect) return;
+  assignRep(assignSelect.dataset.leadId, assignSelect.value);
 });
 
 async function tryUnlock() {
@@ -1937,7 +2011,7 @@ function renderList() {
   document.getElementById('leadList').innerHTML = src.map((lead) => {
     const hours = getHoursSnapshot(lead);
     return `
-      <div class="lead-item${currentId === lead.id ? ' selected' : ''}" onclick='selectLead(${JSON.stringify(String(lead.id))})'>
+      <div class="lead-item${currentId === lead.id ? ' selected' : ''}" data-lead-id="${escapeHtml(String(lead.id))}">
         <div class="li-name">${escapeHtml(lead.name)}</div>
         <div class="li-meta">${escapeHtml(lead.phone || 'No phone')} - ${escapeHtml(lead.category || '')}</div>
         <div class="li-footer">
@@ -2058,7 +2132,7 @@ function renderDetail() {
     <div class="card">
       <div class="card-section-title">Call status</div>
       <div class="status-btns">
-        ${statuses.map((status) => `<button class="status-btn${lead.status === status ? ` sel-${status}` : ''}" onclick='setStatus(${JSON.stringify(String(lead.id))}, ${JSON.stringify(status)})'>${escapeHtml(statusLabel(status))}</button>`).join('')}
+        ${statuses.map((status) => `<button type="button" class="status-btn${lead.status === status ? ` sel-${status}` : ''}" data-action="set-status" data-lead-id="${escapeHtml(String(lead.id))}" data-status="${escapeHtml(status)}">${escapeHtml(statusLabel(status))}</button>`).join('')}
       </div>
     </div>
 
@@ -2069,7 +2143,7 @@ function renderDetail() {
       <div class="card-section-title">Assign rep</div>
       <div class="assign-row">
         <label>Assigned to:</label>
-        <select class="assign-select" onchange='assignRep(${JSON.stringify(String(lead.id))}, this.value)'>
+        <select class="assign-select" data-action="assign-rep" data-lead-id="${escapeHtml(String(lead.id))}">
           <option value="">Unassigned</option>
           ${REPS.map((rep) => `<option value="${escapeHtml(rep)}"${lead.assignedTo === rep ? ' selected' : ''}>${escapeHtml(rep)}</option>`).join('')}
         </select>
@@ -2079,7 +2153,7 @@ function renderDetail() {
     <div class="card">
       <div class="card-section-title">Notes</div>
       <textarea class="notes-area" id="notesArea" placeholder="Add call notes, follow-up details...">${escapeHtml(lead.notes || '')}</textarea>
-      <button class="save-btn" onclick='saveNotes(${JSON.stringify(String(lead.id))})'>Save notes</button>
+      <button type="button" class="save-btn" data-action="save-notes" data-lead-id="${escapeHtml(String(lead.id))}">Save notes</button>
     </div>
 
     ${lead.log && lead.log.length ? `
