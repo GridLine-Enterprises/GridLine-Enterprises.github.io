@@ -158,6 +158,7 @@
       background:rgba(255,255,255,0.05);border:1px solid var(--line-strong);
       border-radius:var(--radius-sm);color:var(--text);font-size:12px;
       padding:5px 10px;font-family:"Manrope",sans-serif;outline:none;cursor:pointer;
+      color-scheme:dark;
     }
     .topbar-rep select:focus{border-color:rgba(198,255,77,0.4);}
     .topbar-actions{display:flex;gap:8px;}
@@ -244,8 +245,21 @@
     .sort-row label{font-size:11px;color:var(--muted);}
     .sort-row select{
       flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--line);
-      border-radius:var(--radius-sm);color:var(--muted);font-size:11px;
+      border-radius:var(--radius-sm);color:var(--text);font-size:11px;
       padding:4px 8px;font-family:"Manrope",sans-serif;outline:none;
+      color-scheme:dark;
+    }
+    .topbar-rep select option,
+    .sort-row select option,
+    .assign-select option{
+      background:#10141d;
+      color:#f4f7fb;
+    }
+    .topbar-rep select option:checked,
+    .sort-row select option:checked,
+    .assign-select option:checked{
+      background:#2d6dcc;
+      color:#ffffff;
     }
 
     /* ── Lead list ── */
@@ -405,6 +419,7 @@
       background:rgba(255,255,255,0.05);border:1px solid var(--line-strong);
       border-radius:var(--radius-sm);color:var(--text);font-size:13px;
       padding:6px 12px;font-family:"Manrope",sans-serif;outline:none;cursor:pointer;
+      color-scheme:dark;
     }
     .assign-select:focus{border-color:rgba(198,255,77,0.4);}
     .auto-assign-btn{
