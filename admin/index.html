@@ -1494,6 +1494,53 @@ function mergeLeadRecords(existing, incoming) {
   existing.reviews = existing.reviews || incoming.reviews;
 }
 
+function mergeLeadState(existing, incoming) {
+  mergeLeadRecords(existing, incoming);
+  existing.name = existing.name || incoming.name;
+  existing.zip = existing.zip || incoming.zip;
+  existing.status = incoming.statusSource === 'user'
+    ? incoming.status || existing.status
+    : existing.status || incoming.status;
+  existing.statusSource = existing.statusSource === 'user'
+    ? existing.statusSource
+    : incoming.statusSource || existing.statusSource;
+  existing.assignedTo = existing.assignedTo || incoming.assignedTo;
+  existing.notes = existing.notes || incoming.notes;
+  existing.scheduledMeeting = existing.scheduledMeeting || incoming.scheduledMeeting;
+  existing.log = [
+    ...(existing.log || []),
+    ...(incoming.log || [])
+  ];
+  existing.log = Array.from(new Map(existing.log.map((entry) => [
+    `${cleanText(entry.time)}|${cleanText(entry.text)}`,
+    entry
+  ])).values());
+}
+
+function dedupeLeadCollection(collection = []) {
+  const byKey = new Map();
+  const byPhone = new Map();
+
+  collection.forEach((rawLead) => {
+    const normalized = normalizeLead(rawLead);
+    const match = findLeadMatch(byKey, byPhone, normalized);
+
+    if (!match) {
+      const key = getLeadKey(normalized);
+      byKey.set(key, normalized);
+      const phoneKey = getPhoneKey(normalized);
+      if (phoneKey) byPhone.set(phoneKey, key);
+      return;
+    }
+
+    mergeLeadState(match.lead, normalized);
+    const mergedPhoneKey = getPhoneKey(match.lead);
+    if (mergedPhoneKey) byPhone.set(mergedPhoneKey, match.key);
+  });
+
+  return Array.from(byKey.values()).map((lead) => normalizeLead(lead));
+}
+
 function parseLeadSheet(sheetName, rows) {
   if (!rows.length) return [];
   const [headers, ...dataRows] = rows;
@@ -1796,11 +1843,13 @@ async function loadLeads() {
 
   savedMap.forEach((saved) => merged.push(normalizeLead(saved)));
 
-  leads = merged;
+  leads = dedupeLeadCollection(merged);
+  if (currentId && !leads.some((lead) => lead.id === currentId)) currentId = '';
   saveLeads();
 }
 
 function saveLeads() {
+  leads = dedupeLeadCollection(leads);
   localStorage.setItem(STORE_KEY, JSON.stringify(leads));
 }
 
