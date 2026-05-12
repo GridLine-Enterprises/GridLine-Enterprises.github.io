@@ -261,6 +261,45 @@
       background:#2d6dcc;
       color:#ffffff;
     }
+    .view-switch{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      margin-top:6px;
+    }
+    .view-switch-btn{
+      border:1px solid var(--line-strong);
+      border-radius:var(--radius-sm);
+      background:rgba(255,255,255,0.04);
+      color:var(--muted);
+      padding:9px 12px;
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      cursor:pointer;
+      transition:all 120ms;
+      font-family:"Manrope",sans-serif;
+    }
+    .view-switch-btn:hover:not(:disabled){
+      border-color:rgba(198,255,77,0.35);
+      color:var(--text);
+      background:rgba(255,255,255,0.08);
+    }
+    .view-switch-btn.active{
+      background:rgba(198,255,77,0.12);
+      border-color:rgba(198,255,77,0.45);
+      color:var(--accent);
+    }
+    .view-switch-btn:disabled{
+      cursor:not-allowed;
+      opacity:0.45;
+    }
+    .view-switch-note{
+      font-size:11px;
+      color:var(--muted);
+      line-height:1.5;
+    }
 
     /* ── Lead list ── */
     .workspace{
@@ -332,6 +371,14 @@
       flex-direction:column;gap:20px;
     }
     .workspace.has-selection .detail-pane{display:flex;}
+    .workspace.playbook-mode{
+      display:block;
+      overflow:hidden;
+    }
+    .workspace.playbook-mode .lead-browser,
+    .workspace.playbook-mode .detail-pane{
+      display:none !important;
+    }
     .detail-pane::-webkit-scrollbar{width:4px;}
     .detail-pane::-webkit-scrollbar-track{background:transparent;}
     .detail-pane::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:999px;}
@@ -727,6 +774,149 @@
       color:var(--text);
       line-height:1.5;
     }
+    .playbook-view{
+      display:none;
+      height:100%;
+      overflow-y:auto;
+      padding:28px;
+    }
+    .workspace.playbook-mode .playbook-view{
+      display:block;
+    }
+    .playbook-view::-webkit-scrollbar{width:4px;}
+    .playbook-view::-webkit-scrollbar-track{background:transparent;}
+    .playbook-view::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:999px;}
+    .playbook-hero{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:18px;
+      margin-bottom:22px;
+      padding:24px 26px;
+      background:linear-gradient(135deg,rgba(120,215,255,0.12),rgba(198,255,77,0.08));
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:var(--radius-lg);
+    }
+    .playbook-eyebrow{
+      font-size:11px;
+      letter-spacing:0.12em;
+      text-transform:uppercase;
+      color:var(--accent-2);
+      margin-bottom:10px;
+      font-weight:700;
+    }
+    .playbook-hero h2{
+      font-family:"Space Grotesk",sans-serif;
+      font-size:30px;
+      line-height:1.05;
+      letter-spacing:-0.05em;
+      margin-bottom:10px;
+    }
+    .playbook-hero p{
+      max-width:720px;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.7;
+    }
+    .playbook-status{
+      flex-shrink:0;
+      min-width:220px;
+      padding:16px 18px;
+      border-radius:var(--radius-md);
+      background:rgba(7,9,13,0.45);
+      border:1px solid rgba(255,255,255,0.08);
+    }
+    .playbook-status-label{
+      font-size:10px;
+      text-transform:uppercase;
+      letter-spacing:0.1em;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+    .playbook-status strong{
+      display:block;
+      font-size:14px;
+      line-height:1.5;
+      color:var(--text);
+    }
+    .playbook-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+    }
+    .playbook-card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:var(--radius-md);
+      padding:20px 22px;
+      backdrop-filter:blur(12px);
+    }
+    .playbook-card.full-span{
+      grid-column:1 / -1;
+    }
+    .playbook-card h3{
+      font-family:"Space Grotesk",sans-serif;
+      font-size:18px;
+      letter-spacing:-0.04em;
+      margin-bottom:8px;
+    }
+    .playbook-card p{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.65;
+      margin-bottom:14px;
+    }
+    .playbook-card ul{
+      list-style:none;
+      display:flex;
+      flex-direction:column;
+      gap:9px;
+    }
+    .playbook-card li{
+      position:relative;
+      padding-left:14px;
+      font-size:13px;
+      line-height:1.55;
+      color:var(--text);
+    }
+    .playbook-card li::before{
+      content:'';
+      position:absolute;
+      left:0;
+      top:8px;
+      width:5px;
+      height:5px;
+      border-radius:50%;
+      background:var(--accent);
+    }
+    .playbook-script{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      margin-top:14px;
+    }
+    .playbook-script-step{
+      padding:14px 16px;
+      border:1px solid var(--line);
+      border-radius:var(--radius-sm);
+      background:rgba(255,255,255,0.03);
+    }
+    .playbook-script-step strong{
+      display:block;
+      font-size:11px;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      color:var(--accent-2);
+      margin-bottom:6px;
+    }
+    .playbook-script-step p{
+      margin:0;
+      color:var(--text);
+    }
+    .playbook-script-step p + p{
+      margin-top:8px;
+      color:var(--muted);
+    }
     .detail-actions{
       display:flex;
       flex-wrap:wrap;
@@ -789,6 +979,10 @@
       .workspace.has-selection .detail-pane{flex:1 1 auto;}
       .workspace.has-selection .lead-browser{border-right:none;}
       .detail-pane{display:flex;flex:1 1 auto;padding:20px;}
+      .playbook-view{padding:20px;}
+      .playbook-hero{flex-direction:column;}
+      .playbook-status{min-width:0;width:100%;}
+      .playbook-grid{grid-template-columns:1fr;}
       .info-grid{grid-template-columns:1fr;}
       .stats-strip{flex-wrap:wrap;}
     }
@@ -933,6 +1127,11 @@
           </select>
           <button class="auto-assign-btn" onclick="autoAssign()">⚡ Auto-assign</button>
         </div>
+        <div class="view-switch">
+          <button class="view-switch-btn active" id="leadsViewBtn" type="button" onclick="showView('leads')">Lead board</button>
+          <button class="view-switch-btn" id="playbookViewBtn" type="button" onclick="showView('playbook')" disabled>Playbook</button>
+        </div>
+        <div class="view-switch-note" id="playbookGateNote">Connect Google and load the live sheet to unlock the employee playbook.</div>
       </div>
 
       <div class="import-card">
@@ -1011,6 +1210,7 @@
           <p>Select a lead to start calling</p>
         </div>
       </div>
+      <div class="playbook-view" id="playbookView"></div>
     </div>
   </div>
 </div>
@@ -1088,6 +1288,176 @@ let googleAccessToken = '';
 let googleAuthReady = false;
 let googleTokenExpiresAt = 0;
 let googleAuthState = 'idle';
+let currentView = 'leads';
+
+const PLAYBOOK_RULES = {
+  voice: [
+    'Speak slower than normal.',
+    'Smile slightly while talking.',
+    'Never sound rushed.',
+    'Never sound salesy.',
+    'Sound like you already did work for them.',
+    'Sound like you are simply showing them something.',
+    'Make the demo sound like the natural next step.'
+  ],
+  pauseShort: [
+    'Use a short pause after your name.',
+    'Use a short pause after the company name.',
+    'Use a short pause after important statements.'
+  ],
+  pauseMedium: [
+    'Use a medium pause after asking questions.',
+    'Use a medium pause after mentioning they do not have a website.',
+    'Use a medium pause right before offering the demo.'
+  ],
+  neverDo: [
+    "Don't ramble.",
+    "Don't sound desperate.",
+    "Don't negotiate pricing on first contact.",
+    "Don't ask weak permission questions.",
+    "Don't say \"Do you wanna...\"",
+    "Don't sound nervous or robotic."
+  ]
+};
+
+const PLAYBOOK_SCRIPTS = {
+  laidBack: [
+    {
+      title: 'Employee rules',
+      lines: [
+        'Never negotiate pricing.',
+        'Never overexplain.',
+        'Only book demos.',
+        'Keep the founder positioned as the authority.'
+      ]
+    },
+    {
+      title: 'Opening',
+      lines: [
+        '"Hey, is this the owner or manager?"',
+        'If they ask who it is: "This is [Name] with Gridline Digital." Then stop talking.'
+      ]
+    },
+    {
+      title: 'Owner picks up',
+      lines: [
+        '"Hey, this is [Name] with Gridline Digital."',
+        '"We help local businesses improve their online presence."',
+        '"I was checking out your business earlier and noticed you do not currently have a website."'
+      ]
+    },
+    {
+      title: 'If they respond positively',
+      lines: [
+        '"So our team actually put together a quick website demo specifically for your business."'
+      ]
+    },
+    {
+      title: 'Authority transfer',
+      lines: [
+        '"Our founder personally reviews all the sites and runs the walkthroughs himself."'
+      ]
+    },
+    {
+      title: 'Booking',
+      lines: [
+        '"The walkthrough only takes around 10 to 15 minutes over Zoom."',
+        '"Would later today or tomorrow work better?"'
+      ]
+    },
+    {
+      title: 'If they ask price',
+      lines: [
+        '"Pricing depends on what the business needs."',
+        '"The walkthrough itself is just to show you the demo first."'
+      ]
+    },
+    {
+      title: 'If they say send info',
+      lines: [
+        '"Absolutely."',
+        '"Usually the founder walks people through it live first because it makes more sense seeing it in real time."'
+      ]
+    },
+    {
+      title: 'If they say not interested',
+      lines: [
+        '"No worries."',
+        '"Just figured it was worth showing since the demo was already made for your business."'
+      ]
+    },
+    {
+      title: 'Final close',
+      lines: [
+        '"Awesome."',
+        '"What\'s the best email for the Zoom link?"'
+      ]
+    }
+  ],
+  aggressive: [
+    {
+      title: 'Opening',
+      lines: [
+        '"Hey, is this the owner?"',
+        'When they say yes: "This is [Name] with Gridline Digital."'
+      ]
+    },
+    {
+      title: 'Problem',
+      lines: [
+        '"I was looking at your business earlier and noticed you do not currently have a website..."',
+        '"Which usually means people searching online are finding competitors first."'
+      ]
+    },
+    {
+      title: 'Hook',
+      lines: [
+        '"So instead of just calling with an idea..."',
+        '"Our team already built a website demo specifically for your business."'
+      ]
+    },
+    {
+      title: 'Authority transfer',
+      lines: [
+        '"Our founder personally quality-checks every site and runs the demos himself."'
+      ]
+    },
+    {
+      title: 'If they ask questions',
+      lines: [
+        '"That would actually be better answered during the walkthrough with the founder."'
+      ]
+    },
+    {
+      title: 'If they say not interested',
+      lines: [
+        '"No worries."',
+        '"Just figured it was worth showing since the work was already done."'
+      ]
+    },
+    {
+      title: 'If they ask price',
+      lines: [
+        '"Pricing depends on what the business needs after the walkthrough."',
+        '"The meeting itself is just to show you the demo."'
+      ]
+    },
+    {
+      title: 'Booking',
+      lines: [
+        '"The walkthrough only takes around 10 minutes."',
+        '"Are you more available later today or tomorrow?"'
+      ]
+    },
+    {
+      title: 'Final close',
+      lines: [
+        '"Perfect."',
+        '"What\'s the best email to send the Zoom link to?"'
+      ]
+    }
+  ]
+};
 
 function normalizePhone(phone) {
   return String(phone || '').replace(/\D/g, '');
@@ -1209,6 +1579,133 @@ function hasSpreadsheetIdConfigured() {
   return Boolean(cleanText(googleSheetConfig.spreadsheetId));
 }
 
+function hasLiveSheetConnection() {
+  const stillValid = googleAccessToken && Date.now() < (googleTokenExpiresAt - 60_000);
+  return Boolean(stillValid && sheetSnapshotMeta?.spreadsheetId);
+}
+
+function updatePlaybookAccessUi() {
+  const playbookBtn = document.getElementById('playbookViewBtn');
+  const gateNote = document.getElementById('playbookGateNote');
+  const unlocked = hasLiveSheetConnection();
+
+  if (playbookBtn) playbookBtn.disabled = !unlocked;
+  if (gateNote) {
+    gateNote.textContent = unlocked
+      ? 'Employee playbook unlocked from the active Google session and live sheet snapshot.'
+      : 'Connect Google and load the live sheet to unlock the employee playbook.';
+    gateNote.style.color = unlocked ? 'var(--accent-2)' : 'var(--muted)';
+  }
+
+  if (!unlocked && currentView === 'playbook') {
+    currentView = 'leads';
+    renderWorkspaceView();
+  }
+}
+
+function renderScriptSteps(steps = []) {
+  return steps.map((step) => `
+    <div class="playbook-script-step">
+      <strong>${escapeHtml(step.title)}</strong>
+      ${step.lines.map((line) => `<p>${escapeHtml(line)}</p>`).join('')}
+    </div>
+  `).join('');
+}
+
+function renderPlaybook() {
+  const playbookView = document.getElementById('playbookView');
+  if (!playbookView) return;
+
+  const updatedAt = sheetSnapshotMeta?.generatedAt
+    ? new Date(sheetSnapshotMeta.generatedAt).toLocaleString()
+    : 'Live sync pending';
+
+  playbookView.innerHTML = `
+    <div class="playbook-hero">
+      <div>
+        <div class="playbook-eyebrow">Employee Playbook</div>
+        <h2>Cold call the lead, keep the pace calm, and book the walkthrough.</h2>
+        <p>Use this page as the in-app calling guide for employees. The goal is simple: sound prepared, move toward the demo naturally, and hand deeper questions to the founder instead of freelancing the pitch.</p>
+      </div>
+      <div class="playbook-status">
+        <div class="playbook-status-label">Access state</div>
+        <strong>Unlocked through Google auth and the connected sheet.</strong>
+        <div class="playbook-status-label" style="margin-top:12px;">Last live sheet refresh</div>
+        <strong>${escapeHtml(updatedAt)}</strong>
+      </div>
+    </div>
+    <div class="playbook-grid">
+      <div class="playbook-card">
+        <h3>Voice Rules</h3>
+        <p>These are the delivery rules from the employee playbook. The tone should feel calm, direct, and already informed.</p>
+        <ul>${PLAYBOOK_RULES.voice.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+      </div>
+      <div class="playbook-card">
+        <h3>Never Do These</h3>
+        <p>Employees are not there to close pricing or improvise a different offer. Keep the lane tight.</p>
+        <ul>${PLAYBOOK_RULES.neverDo.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+      </div>
+      <div class="playbook-card">
+        <h3>Pause Rules</h3>
+        <p>Small pauses make the script sound human. Short pauses are about one second. Medium pauses are about two seconds.</p>
+        <ul>${PLAYBOOK_RULES.pauseShort.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+        <ul style="margin-top:14px;">${PLAYBOOK_RULES.pauseMedium.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+      </div>
+      <div class="playbook-card">
+        <h3>Demo Objective</h3>
+        <p>Every version of the script points toward the same outcome.</p>
+        <ul>
+          <li>Open by getting the owner or manager.</li>
+          <li>Mention that you checked the business and noticed there is no website.</li>
+          <li>Explain that a custom demo was already made for them.</li>
+          <li>Position the founder as the person who reviews the site and runs the walkthrough.</li>
+          <li>Book the Zoom and collect the best email for the link.</li>
+        </ul>
+      </div>
+      <div class="playbook-card full-span">
+        <h3>Laid-Back Script</h3>
+        <p>Use this when the call is moving comfortably and the owner sounds open. Keep it loose, but do not add extra selling.</p>
+        <div class="playbook-script">${renderScriptSteps(PLAYBOOK_SCRIPTS.laidBack)}</div>
+      </div>
+      <div class="playbook-card full-span">
+        <h3>Aggressive Script</h3>
+        <p>Use this when you need a little more urgency. It is still controlled, but the website gap and missed traffic are framed more directly.</p>
+        <div class="playbook-script">${renderScriptSteps(PLAYBOOK_SCRIPTS.aggressive)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderWorkspaceView() {
+  const workspace = document.getElementById('workspace');
+  const leadsBtn = document.getElementById('leadsViewBtn');
+  const playbookBtn = document.getElementById('playbookViewBtn');
+  if (!workspace) return;
+
+  workspace.classList.toggle('playbook-mode', currentView === 'playbook');
+  if (leadsBtn) leadsBtn.classList.toggle('active', currentView === 'leads');
+  if (playbookBtn) playbookBtn.classList.toggle('active', currentView === 'playbook');
+
+  if (currentView === 'playbook') {
+    renderPlaybook();
+  }
+
+  syncWorkspaceLayout();
+}
+
+function showView(view) {
+  if (view === 'playbook' && !hasLiveSheetConnection()) {
+    toast('Connect Google and load the sheet before opening the playbook', 'err');
+    currentView = 'leads';
+    renderWorkspaceView();
+    return;
+  }
+
+  currentView = view === 'playbook' ? 'playbook' : 'leads';
+  if (currentView === 'playbook') currentId = null;
+  renderWorkspaceView();
+}
+
 function updateGoogleSettingsFeedback(message, isError = false) {
   const el = document.getElementById('googleSettingsFeedback');
   if (!el) return;
@@ -1281,6 +1778,7 @@ function updateGoogleAuthUi(message, isError = false) {
     connectBtn.textContent = googleAccessToken ? 'Refresh sheet' : 'Connect Google';
   }
   if (disconnectBtn) disconnectBtn.disabled = !googleAccessToken;
+  updatePlaybookAccessUi();
 }
 
 function initializeGoogleAuth() {
@@ -1824,6 +2322,7 @@ async function loadLeads() {
     sheetSnapshotMeta = data;
     baseLeads = Array.isArray(data.leads) ? data.leads.map(normalizeLead) : [];
     updateSheetSnapshotStatus();
+    updatePlaybookAccessUi();
   } catch (e) {
     if (e.message === 'Google authorization required') {
       updateSheetSnapshotStatus('Connect Google to load the live sheet.', true);
@@ -1832,6 +2331,7 @@ async function loadLeads() {
       updateSheetSnapshotStatus(e.message || 'Sheet snapshot unavailable', true);
       updateGoogleAuthUi(e.message || 'Sheet snapshot unavailable', true);
     }
+    updatePlaybookAccessUi();
   }
 
   const savedMap = new Map((storedLeads || []).map((lead) => [getLeadKey(lead), lead]));
@@ -1910,6 +2410,7 @@ async function disconnectGoogleSheet() {
   sheetSnapshotMeta = null;
   updateGoogleAuthUi('Disconnected. Connect Google to reload the live sheet.');
   updateSheetSnapshotStatus('Connect Google to load the live sheet.', true);
+  updatePlaybookAccessUi();
 }
 
 function saveGoogleSheetSettings() {
@@ -1918,8 +2419,11 @@ function saveGoogleSheetSettings() {
   clearRememberedGoogleSession();
   googleAuthReady = false;
   googleTokenClient = null;
+  sheetSnapshotMeta = null;
   initializeGoogleAuth();
+  updateSheetSnapshotStatus('Connect Google to load the live sheet.', true);
   updateGoogleSettingsFeedback('Sheet ID saved. You can connect without verifying again.');
+  updatePlaybookAccessUi();
   toast('Google sheet settings saved', 'ok');
 }
 
@@ -1973,6 +2477,8 @@ async function tryUnlock() {
   document.getElementById('lockScreen').style.display = 'none';
   document.getElementById('adminApp').style.display = 'flex';
   await loadLeads();
+  updatePlaybookAccessUi();
+  renderWorkspaceView();
   renderStats();
   renderList();
 }
@@ -1989,7 +2495,7 @@ function lockDashboard() {
 function syncWorkspaceLayout() {
   const workspace = document.getElementById('workspace');
   if (!workspace) return;
-  workspace.classList.toggle('has-selection', Boolean(currentId));
+  workspace.classList.toggle('has-selection', currentView === 'leads' && Boolean(currentId));
 }
 
 function renderStats() {
